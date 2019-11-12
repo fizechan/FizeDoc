@@ -170,7 +170,7 @@ class ReStructuredText extends DocHandler
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     'modifiers' => $modifiers,
-                    'name'      => $name,
+                    'name'      => $name . '_',
                     'type'      => $type,
                     'summary'   => $summary,
                 ];
@@ -192,7 +192,7 @@ class ReStructuredText extends DocHandler
             ];
             $datas = [];
             foreach ($methods as $method) {
-                $name = $method->getName();
+                $name = '`' . $method->getName() . '()`_';
                 $return = 'void';
                 $doc = $method->getDocComment();
                 $summary = '';
@@ -287,7 +287,7 @@ class ReStructuredText extends DocHandler
             $str .= str_repeat('*', strlen('属性')) . "\r\n";
             $str .= "\r\n";
             foreach ($properties as $property) {
-                $name = self::originalStr($property->getName());
+                $name = $property->getName();
                 $type = 'unknown';
                 $doc = $property->getDocComment();
                 $var_desc = '';
@@ -313,7 +313,8 @@ class ReStructuredText extends DocHandler
                 $modifiers = Reflection::getModifierNames($property->getModifiers());
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $value = key_exists($name, $default_properties) ? self::formatShowVariable($default_properties[$name]) : 'null';
-                $str .= "{$name}\r\n";
+                $name = self::originalStr($name);
+                $str .= "{$name}\r\n";  //@todo 设置成文档内链接
                 $str .= str_repeat('=', strlen($name)) . "\r\n";
                 $str .= "**{$var_desc}**\r\n\r\n";
                 $str .= "修饰符：*{$modifiers}*；类型：*{$type}*；默认值：*{$value}*。\r\n";
@@ -327,6 +328,9 @@ class ReStructuredText extends DocHandler
                         $str .= "  {$desc}\r\n";
                     }
                 }
+
+                //@todo 说明及用例
+
                 $str .= "\r\n";
             }
         }
@@ -373,8 +377,6 @@ class ReStructuredText extends DocHandler
                 $parameters = $method->getParameters();
                 if ($parameters) {
                     $str .= "*参数*\r\n\r\n";
-                    //$str .= "`参数`\r\n";
-                    //$str .= str_repeat('`', strlen('`参数`')) . "\r\n";
                     $headers = [
                         'name'      => '名称',
                         'summary'   => '说明',
@@ -404,8 +406,6 @@ class ReStructuredText extends DocHandler
                         $return_desc = self::originalStr($return->getDescription());
                         if((string)$return_desc) {
                             $str .= "*返回值*\r\n\r\n";
-                            //$str .= "`返回值`\r\n";
-                            //$str .= str_repeat('`', strlen('`返回值`')) . "\r\n";
                             $str .= $return_desc;
                             $str .= "\r\n";
                         }
@@ -419,6 +419,9 @@ class ReStructuredText extends DocHandler
                         $str .= "  {$desc}\r\n";
                     }
                 }
+
+                //@todo 说明及用例
+
                 $str .= "\r\n";
             }
         }
@@ -650,5 +653,14 @@ class ReStructuredText extends DocHandler
     {
         $str = str_replace('\\', '\\\\', $str);
         return $str;
+    }
+
+    /**
+     * 测试方法
+     * @param $kkk1
+     */
+    public static function test_str($kkk1)
+    {
+
     }
 }
