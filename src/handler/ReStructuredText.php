@@ -26,7 +26,7 @@ class ReStructuredText extends DocHandler
         $doc = $this->reflectionClass->getDocComment();
         if ($doc) {
             $docblock = $this->docBlockFactory->create($doc);
-            $summary = $docblock->getSummary();
+            $summary = self::originalStr($docblock->getSummary());
             $description = $docblock->getDescription();
             //标题
             $str .= str_repeat('#', strlen($summary)) . "\r\n";
@@ -34,7 +34,7 @@ class ReStructuredText extends DocHandler
             $str .= str_repeat('#', strlen($summary)) . "\r\n";
             $str .= "\r\n";
             //描述
-            $str .= $description->render() . "\r\n";
+            $str .= self::originalStr($description->render()) . "\r\n";
         }
         $str .= "\r\n";
 
@@ -69,9 +69,10 @@ class ReStructuredText extends DocHandler
         }
         $interfaces = $this->reflectionClass->getInterfaceNames();
         if ($interfaces) {
+            $interfaces = implode(', ', $interfaces);
             $datas[] = [
                 'attr'  => '实现接口',
-                'value' => implode(', ', $interfaces)  //@todo 超链接
+                'value' => $interfaces  //@todo 超链接
             ];
         }
         $str .= self::createTable($headers, $datas);
@@ -237,19 +238,19 @@ class ReStructuredText extends DocHandler
             $str .= str_repeat('*', strlen('常量')) . "\r\n";
             $str .= "\r\n";
             foreach ($constants as $constant) {
-                $name = $constant->getName();
+                $name = self::originalStr($constant->getName());
                 $value = $constant->getValue();
-                $type = gettype($value);
-                $value = self::formatShowVariable($value);
+                $type = self::originalStr(gettype($value));
+                $value = self::originalStr(self::formatShowVariable($value));
                 $doc = $constant->getDocComment();
                 $summary = '';
                 $desc = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
-                    $summary = $docblock->getSummary();
+                    $summary = self::originalStr($docblock->getSummary());
                     $desc = $docblock->getDescription();
                     if($desc) {
-                        $desc = $desc->render();
+                        $desc = self::originalStr($desc->render());
                     }
                 }
                 $modifiers = Reflection::getModifierNames($constant->getModifiers());
@@ -286,7 +287,7 @@ class ReStructuredText extends DocHandler
             $str .= str_repeat('*', strlen('属性')) . "\r\n";
             $str .= "\r\n";
             foreach ($properties as $property) {
-                $name = $property->getName();
+                $name = self::originalStr($property->getName());
                 $type = 'unknown';
                 $doc = $property->getDocComment();
                 $var_desc = '';
@@ -294,10 +295,10 @@ class ReStructuredText extends DocHandler
                 $desc = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
-                    $summary = $docblock->getSummary();
+                    $summary = self::originalStr($docblock->getSummary());
                     $desc = $docblock->getDescription();
                     if($desc) {
-                        $desc = $desc->render();
+                        $desc = self::originalStr($desc->render());
                     }
                     $vars = $docblock->getTagsByName('var');
                     if ($vars) {
@@ -305,8 +306,8 @@ class ReStructuredText extends DocHandler
                          * @var Var_
                          */
                         $var = $vars[0];
-                        $type = $var->getType();
-                        $var_desc = $var->getDescription();
+                        $type = self::originalStr($var->getType());
+                        $var_desc = self::originalStr($var->getDescription());
                     }
                 }
                 $modifiers = Reflection::getModifierNames($property->getModifiers());
@@ -346,21 +347,21 @@ class ReStructuredText extends DocHandler
             $str .= str_repeat('*', strlen('方法')) . "\r\n";
             $str .= "\r\n";
             foreach ($methods as $method) {
-                $name = $method->getName();
+                $name = self::originalStr($method->getName());
                 $doc = $method->getDocComment();
                 $summary = '';
                 $desc = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
-                    $summary = $docblock->getSummary();
+                    $summary = self::originalStr($docblock->getSummary());
                     $desc = $docblock->getDescription();
                     if($desc) {
-                        $desc = $desc->render();
+                        $desc = self::originalStr($desc->render());
                     }
                 }
 
-                $str .= "**{$name}()**\r\n";  //@todo 设置成文档内链接
-                $str .= str_repeat('=', strlen($name) + 6) . "\r\n";
+                $str .= "{$name}()\r\n";  //@todo 设置成文档内链接
+                $str .= str_repeat('=', strlen($name) + 2) . "\r\n";
                 if($summary) {
                     $str .= "**{$summary}**\r\n\r\n";
                 }
@@ -400,7 +401,7 @@ class ReStructuredText extends DocHandler
                          * @var Return_
                          */
                         $return = $returns[0];
-                        $return_desc = $return->getDescription();
+                        $return_desc = self::originalStr($return->getDescription());
                         if((string)$return_desc) {
                             $str .= "*返回值*\r\n\r\n";
                             //$str .= "`返回值`\r\n";
@@ -547,17 +548,36 @@ class ReStructuredText extends DocHandler
     /**
      * 创建表格
      * @param array $headers 表头
-     * @param array $datas 数据
+     * @param array $rows 数据
+     * @param bool $original 是否原样输出字符串(即非转义)
      * @return string
      */
-    protected static function createTable(array $headers, array $datas)
+    protected static function createTable(array $headers, array $rows, $original = true)
     {
+        if($original) {
+            $temp_headers = [];
+            foreach ($headers as $key => $title) {
+                $title = self::originalStr($title);
+                $temp_headers[$key] = $title;
+            }
+            $headers = $temp_headers;
+            $temp_rows = [];
+            foreach ($rows as $row) {
+                $tem_row = $row;
+                foreach ($headers as $key => $title) {
+                    $tem_row[$key] = self::originalStr($tem_row[$key]);
+                }
+                $temp_rows[] = $tem_row;
+            }
+            $rows = $temp_rows;
+        }
+
         $lens = [];
         $index = 0;
         foreach ($headers as $key => $title) {
             $len = strlen($title);
-            foreach ($datas as $data) {
-                $t_len = strlen($data[$key]);
+            foreach ($rows as $row) {
+                $t_len = strlen($row[$key]);
                 if ($t_len > $len) {
                     $len = $t_len;
                 }
@@ -596,11 +616,11 @@ class ReStructuredText extends DocHandler
                 $str .= "+\r\n";
             }
         }
-        foreach ($datas as $data) {
+        foreach ($rows as $row) {
             $index = 0;
             $str .= '|';
             foreach ($headers as $key => $title) {
-                $str .= self::cnStrPad($data[$key], $lens[$index], ' ');
+                $str .= self::cnStrPad($row[$key], $lens[$index], ' ');
                 if ($index < $len_count - 1) {
                     $str .= '|';
                 } else {
@@ -618,6 +638,17 @@ class ReStructuredText extends DocHandler
                 }
             }
         }
+        return $str;
+    }
+
+    /**
+     * 原样输出
+     * @param string $str 待输出字符串
+     * @return string
+     */
+    protected static function originalStr($str)
+    {
+        $str = str_replace('\\', '\\\\', $str);
         return $str;
     }
 }
