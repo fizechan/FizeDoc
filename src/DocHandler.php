@@ -1,5 +1,4 @@
 <?php
-/** @noinspection PhpIncludeInspection */
 
 namespace fize\doc;
 
@@ -132,14 +131,15 @@ abstract class DocHandler
      * 解析代码文件夹
      * @param string $dir 文件夹路径
      * @param string $output 导出的文档路径
-     * @param string $namespace_pre 命名空间前缀
+     * @param string $namespace 命名空间
      */
-    abstract public static function dir($dir, $output, $namespace_pre = '');
+    abstract public static function dir($dir, $output, $namespace = '');
 
     /**
      * 注册自动加载，在解析文档前执行
      * @param string $dir 要自动加载的文件夹
      * @param string $namespace 命名空间
+     * @noinspection PhpIncludeInspection
      */
     public static function register($dir, $namespace = '')
     {

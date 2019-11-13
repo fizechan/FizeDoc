@@ -12,6 +12,11 @@ class ReStructuredTextTest extends TestCase
     {
         ReStructuredText::register(dirname(dirname(__DIR__)) . '/src', 'fize\doc');
         $doc = new ReStructuredText('fize\doc\handler\ReStructuredText');
+
+//        ReStructuredText::register(dirname(__DIR__) . '/data', 'fizedoc\test');
+//        $doc = new ReStructuredText('fizedoc\test\subb\Test3Doc');
+
+
         $str = $doc->parse();
         echo $str;
     }
