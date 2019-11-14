@@ -13,12 +13,17 @@ class ReStructuredText
     /**
      * 原样输出字符串
      * @param string $str 待输出字符串
+     * @param array $replaces 待替换字符
      * @return string
      */
-    public static function original($str)
+    public static function original($str, array $replaces = [])
     {
-        $str = str_replace('\\', '\\\\', $str);
-        $str = str_replace('*', '\\\\', $str);
+        if (!$replaces) {
+            $replaces = ['\\', '*', '$'];
+        }
+        foreach ($replaces as $replace) {
+            $str = str_replace($replace, '\\' . $replace, $str);
+        }
         return $str;
     }
 
@@ -107,6 +112,11 @@ class ReStructuredText
      */
     protected static function abslength($str)
     {
+        //规定占位为1的字符
+        $fix1s = ['“', '”'];
+        foreach ($fix1s as $fix1) {
+            $str = str_replace($fix1, '*', $str);
+        }
         return strlen(preg_replace("#[^\x{00}-\x{ff}]#u", '**', $str));
     }
 
@@ -481,7 +491,7 @@ class ReStructuredText
         if($content) {
             $lines = explode("\n", $content);
             foreach ($lines as $line) {
-                $str .= '    ' . $line . "\r\n";
+                $str .= '  ' . $line . "\r\n";
             }
             $str .= "\r\n";
         }

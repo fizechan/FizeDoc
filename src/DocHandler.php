@@ -320,8 +320,15 @@ abstract class DocHandler
             }
             $str_parameter_part .= '$' . $name;
 
-            if($parameter->isOptional()) {
-                $str_parameter_part .= ' = ' . self::formatShowVariable($parameter->getDefaultValue());
+            if($parameter->isOptional() && !$parameter->isVariadic()) {
+                try {
+                    $str_parameter_part .= ' = ' . self::formatShowVariable($parameter->getDefaultValue());
+                } catch (\Exception $exception) {
+                    var_dump($method);
+                    var_dump($parameter);
+                }
+
+
                 $str_parameter_left .= ' [';
                 $str_parameter_right .= ']';
             }

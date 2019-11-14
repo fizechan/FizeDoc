@@ -5,6 +5,7 @@ namespace fize\doc\handler;
 
 use fize\doc\DocHandler;
 use fize\doc\driver\ReStructuredText as Rst;
+use phpDocumentor\Reflection\Types\This;
 use Reflection;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
@@ -92,7 +93,7 @@ class ReStructuredText extends DocHandler
         $str .= Rst::table($datas, $headers, false);
         $str .= "\r\n";
 
-        $str .= Rst::directive('contents', '', ['local' => null]);
+        //$str .= Rst::directive('contents', '', ['local' => null]);
 
         return $str;
     }
@@ -439,11 +440,69 @@ class ReStructuredText extends DocHandler
     }
 
     /**
-     * @inheritDoc
+     * 扫描文件夹，生成
+     * @param string $dir
+     * @param string $output
+     * @param string $namespace
+     * @param bool $register_namespace
      */
-    public static function dir($dir, $output, $namespace = '')
+    public static function dir($dir, $output, $namespace = '', $register_namespace = true)
     {
-        self::register($dir, $namespace);
+        if($register_namespace) {
+            self::register($dir, $namespace);
+        }
+
+        if(!is_dir($output)) {
+            mkdir($output, 0777, true);
+        }
+
+        $idxcontent = '';
+
+        $items = scandir($dir);
+        foreach($items as $item){
+            $path = $dir . '/' . $item;
+            if(is_dir($path)){
+                if($item == '.' || $item == '..'){
+                    continue;
+                }
+
+                if($idxcontent){
+                    $idxcontent .= "\n";
+                }
+                $idxcontent .= $item . "/index";
+
+                self::dir($path, $output . '/' . $item, $namespace . '\\' . $item, false);
+            }else{
+                $pathinfo = pathinfo($path);
+
+                if($idxcontent){
+                    $idxcontent .= "\n";
+                }
+                $idxcontent .= self::uncamelize($pathinfo['filename']);
+
+                $save_file = $output . '/' . self::uncamelize($pathinfo['filename']) . '.rst';
+                $rst = new self($namespace . '\\' . $pathinfo['filename']);
+                $content = $rst->parse();
+                file_put_contents($save_file, $content);
+            }
+        }
+        //创建index.rst
+        $idxstr = '';
+        $idxstr .= Rst::title(basename($dir), 1);
+        $idxstr .= "\r\n\r\n";
+        $idxstr .= Rst::directive('toctree', '', ['maxdepth' => 5, 'glob' => null], $idxcontent);
+        file_put_contents($output . '/index.rst', $idxstr);
+    }
+
+    /**
+     * 驼峰命名转间隔符命名
+     * @param string $camelCaps 驼峰命名待转化字符串
+     * @param string $separator 间隔符
+     * @return string
+     */
+    protected static function uncamelize($camelCaps, $separator='_')
+    {
+        return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
 
     /**
