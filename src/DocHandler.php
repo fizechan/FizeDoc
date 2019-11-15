@@ -132,8 +132,9 @@ abstract class DocHandler
      * @param string $dir 文件夹路径
      * @param string $output 导出的文档路径
      * @param string $namespace 命名空间
+     * @param array $map 文件夹命名规范
      */
-    abstract public static function dir($dir, $output, $namespace = '');
+    abstract public static function dir($dir, $output, $namespace = '', array $map = []);
 
     /**
      * 注册自动加载，在解析文档前执行
@@ -350,7 +351,7 @@ abstract class DocHandler
                  * @var Return_
                  */
                 $return = $returns[0];
-                $return_type = $return->getType();
+                $return_type = $return->getType();  //@todo 对于对象类型的处理
                 $str .= ' : ' . $return_type;
             }
         }elseif ($method->hasReturnType()) {

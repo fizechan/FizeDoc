@@ -5,7 +5,6 @@ namespace fize\doc\handler;
 
 use fize\doc\DocHandler;
 use fize\doc\driver\ReStructuredText as Rst;
-use phpDocumentor\Reflection\Types\This;
 use Reflection;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
@@ -105,12 +104,11 @@ class ReStructuredText extends DocHandler
     protected function outline()
     {
         $str = '';
-        $str .= Rst::title('总览', 2);
 
         //常量
         $constants = $this->getConstants();
         if ($constants) {
-            $str .= Rst::title('常量', 3);
+            $str .= Rst::field('常量', '', false, 0);
             $headers = [
                 'modifiers' => '修饰符',
                 'name'      => '名称',
@@ -147,7 +145,7 @@ class ReStructuredText extends DocHandler
         //属性
         $properties = $this->getProperties();
         if ($properties) {
-            $str .= Rst::title('属性', 3);
+            $str .= Rst::field('属性', '', false, 0);
             $headers = [
                 'modifiers' => '修饰符',
                 'name'      => '名称',
@@ -195,7 +193,7 @@ class ReStructuredText extends DocHandler
         //方法
         $methods = $this->getMethods();
         if ($methods) {
-            $str .= Rst::title('方法', 3);
+            $str .= Rst::field('方法', '', false, 0);
             $headers = [
                 'modifiers' => '修饰符',
                 'name'      => '名称',
@@ -318,7 +316,7 @@ class ReStructuredText extends DocHandler
                          * @var Var_
                          */
                         $var = $vars[0];
-                        $type = $var->getType();
+                        $type = $var->getType();  //@todo 对于对象类型的处理
                         $var_desc = $var->getDescription();
                     }
                 }
@@ -444,12 +442,14 @@ class ReStructuredText extends DocHandler
      * @param string $dir
      * @param string $output
      * @param string $namespace
-     * @param bool $register_namespace
+     * @param array $map 文件夹命名规范
      */
-    public static function dir($dir, $output, $namespace = '', $register_namespace = true)
+    public static function dir($dir, $output, $namespace = '', array $map = [])
     {
-        if($register_namespace) {
+        static $registerd_namespace = false;
+        if(!$registerd_namespace) {
             self::register($dir, $namespace);
+            $registerd_namespace = true;
         }
 
         if(!is_dir($output)) {
@@ -471,7 +471,12 @@ class ReStructuredText extends DocHandler
                 }
                 $idxcontent .= $item . "/index";
 
-                self::dir($path, $output . '/' . $item, $namespace . '\\' . $item, false);
+                $submap = [];
+                if(isset($map[1]) && isset($map[1][$item])) {
+                    $submap = $map[1][$item];
+                }
+
+                self::dir($path, $output . '/' . $item, $namespace . '\\' . $item, $submap);
             }else{
                 $pathinfo = pathinfo($path);
 
@@ -488,9 +493,13 @@ class ReStructuredText extends DocHandler
         }
         //创建index.rst
         $idxstr = '';
-        $idxstr .= Rst::title(basename($dir), 1);
+        $title = basename($dir);
+        if(isset($map[0])) {
+            $title = $map[0];
+        }
+        $idxstr .= Rst::title($title, 1);
         $idxstr .= "\r\n\r\n";
-        $idxstr .= Rst::directive('toctree', '', ['maxdepth' => 5, 'glob' => null], $idxcontent);
+        $idxstr .= Rst::directive('toctree', '', ['maxdepth' => 2, 'glob' => null], $idxcontent);
         file_put_contents($output . '/index.rst', $idxstr);
     }
 
