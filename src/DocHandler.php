@@ -11,6 +11,8 @@ use ReflectionProperty;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
+use fize\misc\Preg;
+use Exception;
 
 /**
  * 解析符合PSR4标准的源码，并生成对应文档格式
@@ -261,6 +263,44 @@ abstract class DocHandler
     }
 
     /**
+     * 统一参数类型显示
+     * @param string $type 参数类型
+     * @return string
+     */
+    protected function formatType($type)
+    {
+        $type = (string)$type;
+        $types = explode('|', $type);
+        $tstrs = [];
+        $map = [
+            'integer' => 'int',
+            'boolean' => 'bool'
+        ];
+        foreach ($types as $type) {
+            if(array_key_exists($type, $map)) {
+                $type = $map[$type];
+            }
+            if(strpos($type, '\\') === 0) {
+                $code = file_get_contents($this->reflectionClass->getFileName());
+                $type_name = substr($type, 1);
+                if(Preg::match("/[\n]+[\s]*use[\s]+([^\s]+)[\s]*as[\s]+" . $type_name . "[\s]*;[\s]*[\n]*/", $code, $matches)) {
+                    //形如“use fize\db\definition\Db as Base;”的情况
+                    $type = '\\' . $matches[1];
+                } elseif (Preg::match("/[\n]+[\s]*use[\s]+([^\s]+\\" . $type . ")[\s]*;[\s]*[\n]*/", $code, $matches)) {
+                    //形如“use fize\db\definition\Db;”的情况
+                    $type = '\\' . $matches[1];
+                } elseif (class_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
+                    //在同一个命名空间的情况
+                    $type = '\\' . $this->reflectionClass->getNamespaceName() . $type;
+                }
+            }
+            $tstrs[] = $type;
+        }
+
+        return implode('|', $tstrs);
+    }
+
+    /**
      * 获取方法的参数DOC注释
      * @param ReflectionMethod $method
      * @return array
@@ -280,7 +320,7 @@ abstract class DocHandler
              */
             $docs[$param->getVariableName()] = [
                 'name'         => $param->getName(),
-                'type'         => (string)$param->getType(),
+                'type'         => $this->formatType($param->getType()),
                 'description'  => $param->getDescription()->render(),
                 'isVariadic'   => $param->isVariadic(),
             ];
@@ -299,45 +339,39 @@ abstract class DocHandler
 
         $modifiers = Reflection::getModifierNames($method->getModifiers());
         $modifiers = $modifiers ? implode(' ', $modifiers) : '';
-        $str .= $modifiers . ' function ' . $method->getName() . '(';
+        $str .= $modifiers . ' function ' . $method->getName() . ' (';
 
-        $str_parameter_left = '';
-        $str_parameter_right = '';
+        $str_parameter = '';
         $docs = $this->getMethodParametersDoc($method);
         foreach ($method->getParameters() as $parameter) {
-            $name = $parameter->getName();
-            $str_parameter_part = '';
+            if($str_parameter) {
+                $str_parameter .= ",\r\n";
+            }
 
-            if($str_parameter_left) {
-                $str_parameter_part = ', ';
-            }
+            $name = $parameter->getName();
+            $str_parameter .= '    ';
             if(isset($docs[$name])) {
-                $str_parameter_part .= $docs[$name]['type'] .' ';
+                $str_parameter .= $docs[$name]['type'] .' ';
             } else {
-                $str_parameter_part .= 'mixed ';
+                $str_parameter .= 'mixed ';
             }
-            if($parameter->isCallable()) {
-                $str_parameter_part .= '&';
+            if($parameter->isVariadic()) {
+                $str_parameter .= '...';
             }
-            $str_parameter_part .= '$' . $name;
+            if($parameter->isPassedByReference()) {
+                $str_parameter .= '&';
+            }
+            $str_parameter .= '$' . $name;
 
             if($parameter->isOptional() && !$parameter->isVariadic()) {
-                try {
-                    $str_parameter_part .= ' = ' . self::formatShowVariable($parameter->getDefaultValue());
-                } catch (\Exception $exception) {
-                    var_dump($method);
-                    var_dump($parameter);
-                }
-
-
-                $str_parameter_left .= ' [';
-                $str_parameter_right .= ']';
+                $str_parameter .= ' = ' . self::formatShowVariable($parameter->getDefaultValue());
             }
-            $str_parameter_left .= $str_parameter_part;
         }
-        $str .= $str_parameter_left;
-        if ($str_parameter_right) {
-            $str .= ' ' . $str_parameter_right;
+
+        if($str_parameter) {
+            $str .= "\r\n";
+            $str .= $str_parameter;
+            $str .= "\r\n";
         }
 
         $str .= ')';
@@ -351,7 +385,7 @@ abstract class DocHandler
                  * @var Return_
                  */
                 $return = $returns[0];
-                $return_type = $return->getType();  //@todo 对于对象类型的处理
+                $return_type = $this->formatType($return->getType());
                 $str .= ' : ' . $return_type;
             }
         }elseif ($method->hasReturnType()) {

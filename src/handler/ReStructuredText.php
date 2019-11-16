@@ -92,8 +92,6 @@ class ReStructuredText extends DocHandler
         $str .= Rst::table($datas, $headers, false);
         $str .= "\r\n";
 
-        //$str .= Rst::directive('contents', '', ['local' => null]);
-
         return $str;
     }
 
@@ -110,9 +108,9 @@ class ReStructuredText extends DocHandler
         if ($constants) {
             $str .= Rst::field('常量', '', false, 0);
             $headers = [
-                'modifiers' => '修饰符',
+                //'modifiers' => '修饰符',
                 'name'      => '名称',
-                'type'      => '类型',
+                //'type'      => '类型',
                 'value'     => '值',
                 'summary'   => '说明',
             ];
@@ -120,7 +118,7 @@ class ReStructuredText extends DocHandler
             foreach ($constants as $constant) {
                 $name = $constant->getName();
                 $value = $constant->getValue();
-                $type = gettype($value);
+                $type = $this->formatType(gettype($value));
                 $value = Rst::original(self::formatShowVariable($value));
                 $doc = $constant->getDocComment();
                 $summary = '';
@@ -131,9 +129,9 @@ class ReStructuredText extends DocHandler
                 $modifiers = Reflection::getModifierNames($constant->getModifiers());
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
-                    'modifiers' => $modifiers,
+                    //'modifiers' => $modifiers,
                     'name'      => Rst::link($name),
-                    'type'      => $type,
+                    //'type'      => $type,
                     'value'     => $value,
                     'summary'   => $summary,
                 ];
@@ -147,9 +145,9 @@ class ReStructuredText extends DocHandler
         if ($properties) {
             $str .= Rst::field('属性', '', false, 0);
             $headers = [
-                'modifiers' => '修饰符',
+                //'modifiers' => '修饰符',
                 'name'      => '名称',
-                'type'      => '类型',
+                //'type'      => '类型',
                 'summary'   => '说明',
             ];
             $datas = [];
@@ -167,7 +165,7 @@ class ReStructuredText extends DocHandler
                          * @var Var_
                          */
                         $var = $vars[0];
-                        $type = $var->getType();
+                        $type = $this->formatType($var->getType());
                         $desc = $var->getDescription();
                         if ($desc) {
                             $summary = $desc;
@@ -179,9 +177,9 @@ class ReStructuredText extends DocHandler
                 $modifiers = Reflection::getModifierNames($property->getModifiers());
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
-                    'modifiers' => $modifiers,
+                    //'modifiers' => $modifiers,
                     'name'      => Rst::link($name),
-                    'type'      => $type,
+                    //'type'      => $type,
                     'summary'   => $summary,
                 ];
             }
@@ -195,9 +193,9 @@ class ReStructuredText extends DocHandler
         if ($methods) {
             $str .= Rst::field('方法', '', false, 0);
             $headers = [
-                'modifiers' => '修饰符',
-                'name'      => '名称',
-                'return'    => '返回类型',
+                //'modifiers' => '修饰符',
+                'name'      => '方法名',
+                //'return'    => '返回类型',
                 'summary'   => '说明',
             ];
             $datas = [];
@@ -215,7 +213,7 @@ class ReStructuredText extends DocHandler
                          * @var Return_
                          */
                         $return = $returns[0];
-                        $return = $return->getType();
+                        $return = $this->formatType($return->getType());
                     }
                 }
                 $summary = Rst::original($summary);
@@ -223,9 +221,9 @@ class ReStructuredText extends DocHandler
                 $modifiers = Reflection::getModifierNames($method->getModifiers());
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
-                    'modifiers' => $modifiers,
+                    //'modifiers' => $modifiers,
                     'name'      => Rst::link($name . '()'),
-                    'return'    => $return,
+                    //'return'    => $return,
                     'summary'   => $summary,
                 ];
             }
@@ -249,7 +247,7 @@ class ReStructuredText extends DocHandler
             foreach ($constants as $constant) {
                 $name = $constant->getName();
                 $value = $constant->getValue();
-                $type = gettype($value);
+                $type = $this->formatType(gettype($value));
                 $value = self::formatShowVariable($value);
                 $doc = $constant->getDocComment();
                 $summary = '';
@@ -267,7 +265,7 @@ class ReStructuredText extends DocHandler
 
                 $str .= Rst::title($name, 3);
                 if($summary) {
-                    $str .= Rst::modifyEmphasis($summary);
+                    $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
                 $str .= Rst::field('修饰符', $modifiers);
@@ -316,7 +314,7 @@ class ReStructuredText extends DocHandler
                          * @var Var_
                          */
                         $var = $vars[0];
-                        $type = $var->getType();  //@todo 对于对象类型的处理
+                        $type = $this->formatType($var->getType());
                         $var_desc = $var->getDescription();
                     }
                 }
@@ -326,7 +324,7 @@ class ReStructuredText extends DocHandler
 
                 $str .= Rst::title($name, 3);
                 if($summary) {
-                    $str .= Rst::modifyEmphasis($summary);
+                    $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
                 $str .= Rst::field('修饰符', $modifiers);
@@ -370,7 +368,7 @@ class ReStructuredText extends DocHandler
 
                 $str .= Rst::title($name . '()', 3);
                 if($summary) {
-                    $str .= Rst::modifyEmphasis($summary);
+                    $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
 
@@ -378,7 +376,7 @@ class ReStructuredText extends DocHandler
 
                 $parameters = $method->getParameters();
                 if ($parameters) {
-                    $str .= Rst::field('参数', '', false, 0);
+
                     $headers = [
                         'name'      => '名称',
                         'summary'   => '说明',
@@ -392,7 +390,24 @@ class ReStructuredText extends DocHandler
                             'summary'   => isset($docs[$name]) ? $docs[$name]['description'] : '',
                         ];
                     }
-                    $str .= Rst::table($datas, $headers);
+                    $str_table = Rst::table($datas, $headers);
+                    $str .= Rst::field('参数', $str_table, false);
+
+//                    $str .= Rst::field('参数', '', false, 0);
+//                    $headers = [
+//                        'name'      => '名称',
+//                        'summary'   => '说明',
+//                    ];
+//                    $datas = [];
+//                    $docs = $this->getMethodParametersDoc($method);
+//                    foreach ($parameters as $parameter) {
+//                        $name = $parameter->getName();
+//                        $datas[] = [
+//                            'name'      => $name,
+//                            'summary'   => isset($docs[$name]) ? $docs[$name]['description'] : '',
+//                        ];
+//                    }
+//                    $str .= Rst::table($datas, $headers);
                 }
 
                 if($doc) {

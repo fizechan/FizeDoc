@@ -11,7 +11,8 @@
     "require": {
         "php": ">=7.1.0",
         "ext-json": "*",
-        "phpdocumentor/reflection-docblock": "5.0.*@alpha"
+        "phpdocumentor/reflection-docblock": "5.0.*@alpha",
+        "fize/misc": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^8.0.0"

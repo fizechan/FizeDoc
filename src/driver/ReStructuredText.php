@@ -19,7 +19,7 @@ class ReStructuredText
     public static function original($str, array $replaces = [])
     {
         if (!$replaces) {
-            $replaces = ['\\', '*', '$'];
+            $replaces = ['\\'];
         }
         foreach ($replaces as $replace) {
             $str = str_replace($replace, '\\' . $replace, $str);
@@ -448,6 +448,8 @@ class ReStructuredText
      */
     public static function field($name, $desc, $original = true, $indent = 2)
     {
+        $desc = str_replace("\r\n", "\n", $desc);
+
         $str = '';
         $str .= ":{$name}:\r\n";
 
@@ -472,6 +474,8 @@ class ReStructuredText
      */
     public static function directive($name, $desc, array $options = [], $content = '')
     {
+        $desc = str_replace("\r\n", "\n", $desc);
+
         $str = '';
         $str .= ".. {$name}::";
         if($desc) {
