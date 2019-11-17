@@ -355,11 +355,11 @@ abstract class DocHandler
             } else {
                 $str_parameter .= 'mixed ';
             }
-            if($parameter->isVariadic()) {
-                $str_parameter .= '...';
-            }
             if($parameter->isPassedByReference()) {
                 $str_parameter .= '&';
+            }
+            if($parameter->isVariadic()) {
+                $str_parameter .= '...';
             }
             $str_parameter .= '$' . $name;
 

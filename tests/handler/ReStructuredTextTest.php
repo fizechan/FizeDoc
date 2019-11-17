@@ -68,10 +68,10 @@ class ReStructuredTextTest extends TestCase
         ];
         ReStructuredText::filter($filter);
 
-//        $dir = 'F:\git\github\Fize\FizeMisc\src';
-//        $output = dirname(__DIR__) . '/output3';
-//        ReStructuredText::dir($dir, $output, 'fize\misc');
-//        return;
+        $dir = 'F:\git\github\Fize\FizeMisc\src';
+        $output = dirname(__DIR__) . '/output3';
+        ReStructuredText::dir($dir, $output, 'fize\misc');
+        return;
 
         //文件夹定义
         $map = [
