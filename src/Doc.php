@@ -6,7 +6,7 @@ namespace fize\doc;
 use Exception;
 
 /**
- * 解析PHP源码，并生成对应文档格式
+ * 解析 PHP 源码，并生成对应文档格式
  */
 class Doc
 {

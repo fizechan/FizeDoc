@@ -14,7 +14,7 @@ use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use fize\misc\Preg;
 
 /**
- * 解析符合PSR4标准的源码，并生成对应文档格式
+ * 解析源码，并生成对应文档格式
  */
 abstract class DocHandler
 {

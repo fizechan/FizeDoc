@@ -12,7 +12,7 @@ use fize\io\File;
 use fize\io\Directory;
 
 /**
- * 解析符合PSR4标准的源码，并生成对应rst文档格式
+ * 解析源码，并生成对应 rst 文档格式
  */
 class ReStructuredText extends DocHandler
 {
