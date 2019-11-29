@@ -12,7 +12,6 @@ use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use fize\misc\Preg;
-use Exception;
 
 /**
  * 解析符合PSR4标准的源码，并生成对应文档格式
@@ -38,7 +37,7 @@ abstract class DocHandler
     /**
      * @var array 过滤器
      */
-    protected static $filter = [
+    protected $filters = [
         'class'    => [
             'abstract'     => [false, true],
             'anonymous'    => [false, true],
@@ -85,12 +84,17 @@ abstract class DocHandler
     /**
      * 初始化
      * @param string $class 类全限定名
+     * @param array $filters 过滤器
      */
-    public function __construct($class)
+    public function __construct($class, array $filters = [])
     {
         $this->class = $class;
         $this->reflectionClass = new ReflectionClass($class);
         $this->docBlockFactory = DocBlockFactory::createInstance();
+
+        if($filters) {
+            $this->filter($filters);
+        }
     }
 
     /**
@@ -130,40 +134,57 @@ abstract class DocHandler
     abstract public function parse();
 
     /**
-     * 解析代码文件夹
-     * @param string $dir 文件夹路径
+     * 解析代码文件
+     * @param string $file 文件路径
      * @param string $output 导出的文档路径
      * @param string $namespace 命名空间
-     * @param array $map 文件夹命名规范
+     * @param array $filters 过滤器
      */
-    abstract public static function dir($dir, $output, $namespace = '', array $map = []);
+    abstract public static function file($file, $output, $namespace = '', array $filters = []);
 
     /**
-     * 注册自动加载，在解析文档前执行
+     * 解析代码文件夹
+     * @param string $dir 文件夹路径
+     * @param string $output 导出的文档目录路径
+     * @param string $namespace 命名空间
+     * @param array $map 文件夹命名规范
+     * @param array $filters 过滤器
+     */
+    abstract public static function dir($dir, $output, $namespace = '', array $map = [], array $filters = []);
+
+    /**
+     * 注册自动加载
      * @param string $dir 要自动加载的文件夹
      * @param string $namespace 命名空间
      * @noinspection PhpIncludeInspection
      */
-    public static function register($dir, $namespace = '')
+    protected static function register($dir, $namespace = '')
     {
-        spl_autoload_register(function ($class) use ($dir, $namespace) {
-            $class = str_replace($namespace, '', $class);
-            $file = str_replace('\\', DIRECTORY_SEPARATOR, "{$dir}/{$class}.php");
-            if (!is_file($file)) {
-                return false;
-            }
-            require_once $file;
-            return true;
-        }, false, true);
+        static $registerd_namespaces = [];
+        if(!isset($registerd_namespaces[$namespace])) {
+            spl_autoload_register(function ($class) use ($dir, $namespace) {
+                $class = str_replace($namespace, '', $class);
+                $file = str_replace('\\', DIRECTORY_SEPARATOR, "{$dir}/{$class}.php");
+                if (!is_file($file)) {
+                    return false;
+                }
+                require_once $file;
+                return true;
+            }, false, true);
+            $registerd_namespaces[$namespace] = true;
+        }
     }
 
     /**
      * 设置过滤器
-     * @param array $filter 过滤器
+     * @param array $filters 过滤器
      */
-    public static function filter(array $filter)
+    protected function filter(array $filters)
     {
-        self::$filter = $filter;
+        foreach ($filters as $type => $filter) {
+            $filter = array_merge($this->filters[$type], $filter);
+            $this->filters[$type] = $filter;
+        }
     }
 
     /**
@@ -172,7 +193,7 @@ abstract class DocHandler
      */
     protected function getConstants()
     {
-        $filter = self::$filter['constant'];
+        $filter = $this->filters['constant'];
         $constants = [];
         foreach ($this->reflectionClass->getReflectionConstants() as $constant) {
             $scope_map1 = in_array('public', $filter['scope']) && $constant->isPublic();
@@ -191,7 +212,7 @@ abstract class DocHandler
      */
     protected function getMethods()
     {
-        $filter = self::$filter['method'];
+        $filter = $this->filters['method'];
         $methods = [];
         foreach ($this->reflectionClass->getMethods() as $method) {
             $scope_map1 = in_array('public', $filter['scope']) && $method->isPublic();
@@ -208,7 +229,10 @@ abstract class DocHandler
             $generator_map = in_array($method->isGenerator(), $filter['generator']);
             $internal_map = in_array($method->isInternal(), $filter['internal']);
             $variadic_map = in_array($method->isVariadic(), $filter['variadic']);
-            if ($scope_map && $abstract_map && $constructor_map && $destructor_map && $final_map && $static_map && $closure_map && $deprecated_map && $generator_map && $internal_map && $variadic_map) {
+            if (
+                $scope_map && $abstract_map && $constructor_map && $destructor_map && $final_map &&
+                $static_map && $closure_map && $deprecated_map && $generator_map && $internal_map && $variadic_map
+            ) {
                 $methods[] = $method;
             }
         }
@@ -221,7 +245,7 @@ abstract class DocHandler
      */
     protected function getProperties()
     {
-        $filter = self::$filter['property'];
+        $filter = $this->filters['property'];
         $properties = [];
         foreach ($this->reflectionClass->getProperties() as $property) {
             $scope_map1 = in_array('public', $filter['scope']) && $property->isPublic();
@@ -290,7 +314,10 @@ abstract class DocHandler
                     //形如“use fize\db\definition\Db;”的情况
                     $type = '\\' . $matches[1];
                 } elseif (class_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
-                    //在同一个命名空间的情况
+                    //类在同一个命名空间的情况
+                    $type = '\\' . $this->reflectionClass->getNamespaceName() . $type;
+                } elseif(interface_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
+                    //接口在同一个命名空间的情况
                     $type = '\\' . $this->reflectionClass->getNamespaceName() . $type;
                 }
             }
@@ -302,7 +329,7 @@ abstract class DocHandler
 
     /**
      * 获取方法的参数DOC注释
-     * @param ReflectionMethod $method
+     * @param ReflectionMethod $method 方法
      * @return array
      */
     protected function getMethodParametersDoc(ReflectionMethod $method)
@@ -345,7 +372,7 @@ abstract class DocHandler
         $docs = $this->getMethodParametersDoc($method);
         foreach ($method->getParameters() as $parameter) {
             if($str_parameter) {
-                $str_parameter .= ",\r\n";
+                $str_parameter .= ",\n";
             }
 
             $name = $parameter->getName();
@@ -369,9 +396,9 @@ abstract class DocHandler
         }
 
         if($str_parameter) {
-            $str .= "\r\n";
+            $str .= "\n";
             $str .= $str_parameter;
-            $str .= "\r\n";
+            $str .= "\n";
         }
 
         $str .= ')';
@@ -394,5 +421,16 @@ abstract class DocHandler
         }
 
         return $str;
+    }
+
+    /**
+     * 驼峰命名转间隔符命名
+     * @param string $camelCaps 待转化字符串
+     * @param string $separator 间隔符
+     * @return string
+     */
+    protected static function uncamelize($camelCaps, $separator='_')
+    {
+        return strtolower(Preg::replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
 }

@@ -4,9 +4,9 @@
 namespace fize\doc\driver;
 
 /**
- * ReStructuredText驱动类
+ * ReStructuredText 驱动类
  *
- * 用于生成rst格式
+ * 用于生成 rst 格式
  */
 class ReStructuredText
 {

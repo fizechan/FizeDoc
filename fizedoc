@@ -1,0 +1,158 @@
+#!/usr/bin/env php
+<?php
+require_once dirname(__FILE__) . "/vendor/autoload.php";
+
+
+use fize\doc\Doc;
+use fize\io\File;
+use fize\io\Directory;
+
+/**
+ * 获取最终配置
+ * @noinspection PhpIncludeInspection
+ * @return array
+ */
+function get_config()
+{
+    //c:指定配置文件
+    //d:指定代码文件夹
+    //f:指定代码文件
+    //h:指定处理器
+    //n:指定命名空间
+    //o:指定输出位置
+    $options = getopt("c:d:f:h:n:o:", ['config::', 'dir::', 'file::', 'handler::', 'namespace::', 'output::']);
+
+    $config = [];
+    if (isset($options['c'])) {  //指定配置文件
+        $cfg_file = $options['c'];
+        $config = require_once $cfg_file;
+    } elseif (isset($options['config'])) {
+        $cfg_file = $options['config'];
+        $config = require_once $cfg_file;
+    } else {  //默认配置文件
+        if (File::exists(Directory::getcwd() . '/fizedoc.php')) {
+            $config = require_once Directory::getcwd() . '/fizedoc.php';
+        }
+    }
+
+    $default_config = [
+        'handler'   => 'ReStructuredText',
+        'dir' => Directory::getcwd(),
+        'output'    => Directory::getcwd() . '/output',
+        'namespace' => '',
+        'filters'    => [
+            'class'    => [
+                'abstract'     => [false, true],
+                'anonymous'    => [false, true],
+                'cloneable'    => [false, true],
+                'final'        => [false, true],
+                'instantiable' => [false, true],
+                'interface'    => [false, true],
+                'internal'     => [false],
+                'iterable'     => [false, true],
+                'iterateable ' => [false, true],
+                'trait'        => [false, true],
+            ],
+            'constant' => [
+                'scope' => ['public']
+            ],
+            'function' => [
+                'disabled'   => [false, true],
+                'closure'    => [false, true],
+                'deprecated' => [false, true],
+                'generator'  => [false, true],
+                'internal'   => [false],
+                'variadic'   => [false, true],
+            ],
+            'method'   => [
+                'scope'       => ['public'],
+                'abstract'    => [false, true],
+                'constructor' => [false, true],
+                'destructor'  => [false, true],
+                'final'       => [false, true],
+                'static'      => [false, true],
+                'closure'     => [false, true],
+                'deprecated'  => [false, true],
+                'generator'   => [false, true],
+                'internal'    => [false],
+                'variadic'    => [false, true],
+            ],
+            'property' => [
+                'scope'   => ['public'],
+                'default' => [false, true],
+                'static'  => [false, true]
+            ]
+        ],
+        'map'       => [],
+        'file'      => null
+    ];
+
+    $config = array_merge($default_config, $config);
+
+     //指定代码文件夹
+    if (isset($options['d'])) {
+        $config['dir'] = $options['d'];
+    }
+    if (isset($options['dir'])) {
+        $config['dir'] = $options['dir'];
+    }
+
+    //指定代码文件
+    if (isset($options['f'])) {
+        $config['file'] = $options['f'];
+    }
+    if (isset($options['file'])) {
+        $config['file'] = $options['file'];
+    }
+
+    //指定处理器
+    if (isset($options['h'])) {
+        $config['handler'] = $options['h'];
+    }
+    if (isset($options['handler'])) {
+        $config['handler'] = $options['handler'];
+    }
+
+    //指定命名空间
+    if (isset($options['n'])) {
+        $config['namespace'] = $options['n'];
+    }
+    if (isset($options['namespace'])) {
+        $config['namespace'] = $options['namespace'];
+    }
+
+    //指定输出位置
+    if (isset($options['o'])) {
+        $config['output'] = $options['o'];
+    }
+    if (isset($options['output'])) {
+        $config['output'] = $options['output'];
+    }
+
+    return $config;
+}
+
+$config = get_config();
+
+echo "FizeDoc Begin...\n";
+new Doc($config['handler']);
+
+if($config['file']) {
+    if (is_array($config['file'])) {
+        foreach ($config['file'] as $file) {
+            echo "{$file} -> File Processing...\n";
+            Doc::file($file, $config['output'], $config['namespace'], $config['filters']);
+            echo "{$file} -> File Done!\n";
+        }
+    } else {
+        echo "{$config['file']} -> File Processing...\n";
+        Doc::file($config['file'], $config['output'], $config['namespace'], $config['filters']);
+        echo "{$config['file']} -> File Done!\n";
+    }
+} else {
+    echo "{$config['dir']} -> Directory Processing...\n";
+    Doc::dir($config['dir'], $config['output'], $config['namespace'], $config['map'], $config['filters']);
+    echo "{$config['dir']} -> Directory Done!\n";
+}
+
+echo "FizeDoc All Done!\n";

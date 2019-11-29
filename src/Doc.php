@@ -1,75 +1,64 @@
 <?php
-/** @noinspection PhpIncludeInspection */
 
 
 namespace fize\doc;
 
-use ReflectionClass;
-use ReflectionException;
-use phpDocumentor\Reflection\DocBlockFactory;
+use Exception;
 
 /**
- * 解析符合PSR4标准的源码，并生成对应文档格式
+ * 解析PHP源码，并生成对应文档格式
  */
 class Doc
 {
 
-    public static function file($file, $output, $namespace_pre = '')
-    {
-
-    }
-
-    static public function dir($dir, $output, $namespace_pre = '')
-    {
-
-    }
+    /**
+     * @var DocHandler
+     */
+    private static $handler;
 
     /**
-     * @var ReflectionClass 待解析的类
+     * 常规调用请先初始化
+     * @param string $handler 使用的实际接口名称
      */
-    protected $class;
-
-    /**
-     * 初始化
-     * @param string $file 类文件路径
-     * @param string $namespace_pre 命名空间前缀
-     * @throws ReflectionException
-     */
-    public function __construct($file, $namespace_pre = '')
+    public function __construct($handler)
     {
-        require_once $file;
-        $class = basename($file, '.php');
-        if($namespace_pre) {
-            $class = "{$namespace_pre}\\{$class}";
+        switch (strtolower($handler)) {
+            case 'md':
+            case 'markdown':
+                $class = '\\' . __NAMESPACE__ . '\\handler\\Markdown';
+                break;
+            case 'rst':
+            case 'restructuredtext':
+                $class = '\\' . __NAMESPACE__ . '\\handler\\ReStructuredText';
+                break;
+            default:
+                throw new Exception('fizedoc handler error');
         }
-        $this->class = new ReflectionClass($class);
+        self::$handler = $class;
     }
-	
-	/**
-     * 大纲
-     * @return array
+
+    /**
+     * 解析代码文件
+     * @param string $file 文件路径
+     * @param string $output 导出的文档路径
+     * @param string $namespace 命名空间
+     * @param array $filters 过滤器
      */
-	public function getOutline()
-	{
-		
-	}
-
-    public function getClassDoc()
+    public static function file($file, $output, $namespace = '', array $filters = [])
     {
-        return $this->class->getDocComment();
+        self::$handler::file($file, $output, $namespace, $filters);
     }
 
-    public function getTags($doc)
+    /**
+     * 解析代码文件夹
+     * @param string $dir 代码目录
+     * @param string $output 指定生成文档目录
+     * @param string $namespace 指定代码的顶级命名空间
+     * @param array $map 文件夹在文档中的命名
+     * @param array $filters 过滤器
+     */
+    public static function dir($dir, $output, $namespace = '', array $map = [], array $filters = [])
     {
-        $factory  = DocBlockFactory::createInstance();
-        $docblock = $factory->create($doc);
-        return $docblock->getTags();
-    }
-
-    public function getTag($doc, $tag)
-    {
-        $factory  = DocBlockFactory::createInstance();
-        $docblock = $factory->create($doc);
-        return $docblock->getTagsByName($tag);
+        self::$handler::dir($dir, $output, $namespace, $map, $filters);
     }
 }

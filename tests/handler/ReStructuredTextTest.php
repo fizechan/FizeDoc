@@ -8,21 +8,12 @@ use PHPUnit\Framework\TestCase;
 class ReStructuredTextTest extends TestCase
 {
 
-    public function testParse()
-    {
-        ReStructuredText::register(dirname(dirname(__DIR__)) . '/src', 'fize\doc');
-        $doc = new ReStructuredText('fize\doc\handler\ReStructuredText');
-
-//        ReStructuredText::register(dirname(__DIR__) . '/data', 'fizedoc\test');
-//        $doc = new ReStructuredText('fizedoc\test\subb\Test3Doc');
-
-
-        $str = $doc->parse();
-        echo $str;
-    }
-
     public function testDir()
     {
+        $bool = is_dir("F:\git\github\output\FizeDoc");
+        var_dump($bool);
+        die();
+
         $filter = [
             'class'    => [
                 'abstract'     => [false, true],
@@ -31,7 +22,7 @@ class ReStructuredTextTest extends TestCase
                 'final'        => [false, true],
                 'instantiable' => [false, true],
                 'interface'    => [false, true],
-                'internal'     => [false, true],
+                'internal'     => [false],
                 'iterable'     => [false, true],
                 'iterateable ' => [false, true],
                 'trait'        => [false, true],
@@ -44,7 +35,7 @@ class ReStructuredTextTest extends TestCase
                 'closure'    => [false, true],
                 'deprecated' => [false, true],
                 'generator'  => [false, true],
-                'internal'   => [false, true],
+                'internal'   => [false],
                 'variadic'   => [false, true],
             ],
             'method'   => [
@@ -57,7 +48,7 @@ class ReStructuredTextTest extends TestCase
                 'closure'     => [false, true],
                 'deprecated'  => [false, true],
                 'generator'   => [false, true],
-                'internal'    => [false, true],
+                'internal'    => [false],
                 'variadic'    => [false, true],
             ],
             'property' => [
@@ -68,9 +59,37 @@ class ReStructuredTextTest extends TestCase
         ];
         ReStructuredText::filter($filter);
 
-        $dir = 'F:\git\github\Fize\FizeMisc\src';
-        $output = dirname(__DIR__) . '/output3';
-        ReStructuredText::dir($dir, $output, 'fize\misc');
+//        $dir = 'F:\git\github\Fize\FizeDatetime\src';
+//        $output = dirname(__DIR__) . '/output6';
+//        ReStructuredText::dir($dir, $output, 'fize\datetime');
+//        return;
+
+//        $dir = 'F:\git\github\Fize\FizeCrypt\src';
+//        $output = dirname(__DIR__) . '/output5';
+//        ReStructuredText::dir($dir, $output, 'fize\crypt');
+//        return;
+//
+//        $dir = 'F:\git\github\Fize\FizeIo\src';
+//        $output = dirname(__DIR__) . '/output4';
+//        ReStructuredText::dir($dir, $output, 'fize\io');
+//        return;
+//
+//        $dir = 'F:\git\github\Fize\FizeMisc\src';
+//        $output = dirname(__DIR__) . '/output3';
+//        ReStructuredText::dir($dir, $output, 'fize\misc');
+//        return;
+
+        $map = [
+            '类库参考',
+            [
+                'handler' => ['处理器']
+            ]
+        ];
+        $dir = 'F:\git\github\Fize\FizeCache\src';
+        $output = dirname(__DIR__) . '/output/cache';
+
+
+        ReStructuredText::dir($dir, $output, 'fize\cache', $map);
         return;
 
         //文件夹定义
