@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-$file_dep = dirname(__FILE__) . "/../../../autoload.php";
+$file_dep = dirname(__FILE__) . "/../../autoload.php";
 if (file_exists($file_dep)) {
     require_once $file_dep;
 } else {
