@@ -1,6 +1,17 @@
 #!/usr/bin/env php
 <?php
-require_once dirname(__FILE__) . "/vendor/autoload.php";
+
+$file_dep = dirname(__FILE__) . "/../../../autoload.php";
+if (file_exists($file_dep)) {
+    require_once $file_dep;
+} else {
+    $file_dev = dirname(__FILE__) . "/vendor/autoload.php";
+    if (file_exists($file_dev)) {
+        require_once $file_dev;
+    } else {
+        die("file `autoload.php` not found");
+    }
+}
 
 
 use fize\doc\Doc;
@@ -37,10 +48,10 @@ function get_config()
 
     $default_config = [
         'handler'   => 'ReStructuredText',
-        'dir' => Directory::getcwd(),
+        'dir'       => Directory::getcwd(),
         'output'    => Directory::getcwd() . '/output',
         'namespace' => '',
-        'filters'    => [
+        'filters'   => [
             'class'    => [
                 'abstract'     => [false, true],
                 'anonymous'    => [false, true],
@@ -89,7 +100,7 @@ function get_config()
 
     $config = array_merge($default_config, $config);
 
-     //指定代码文件夹
+    //指定代码文件夹
     if (isset($options['d'])) {
         $config['dir'] = $options['d'];
     }
@@ -137,7 +148,7 @@ $config = get_config();
 echo "FizeDoc Begin...\n";
 new Doc($config['handler']);
 
-if($config['file']) {
+if ($config['file']) {
     if (is_array($config['file'])) {
         foreach ($config['file'] as $file) {
             echo "{$file} -> File Processing...\n";
