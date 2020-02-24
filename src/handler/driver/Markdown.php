@@ -1,7 +1,7 @@
 <?php
 
 
-namespace fize\doc\driver;
+namespace fize\doc\handler\driver;
 
 /**
  * Markdown 驱动类

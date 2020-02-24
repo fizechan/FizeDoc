@@ -4,7 +4,7 @@
 namespace fize\doc\handler;
 
 use fize\doc\DocHandler;
-use fize\doc\driver\ReStructuredText as Rst;
+use fize\doc\handler\driver\ReStructuredText as Rst;
 use Reflection;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;

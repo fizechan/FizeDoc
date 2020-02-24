@@ -3,7 +3,7 @@
 
 namespace fize\doc;
 
-use Exception;
+use RuntimeException;
 
 /**
  * 解析 PHP 源码，并生成对应文档格式
@@ -32,7 +32,7 @@ class Doc
                 $class = '\\' . __NAMESPACE__ . '\\handler\\ReStructuredText';
                 break;
             default:
-                throw new Exception('fizedoc handler error');
+                throw new RuntimeException('fizedoc handler error');
         }
         self::$handler = $class;
     }
