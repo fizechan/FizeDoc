@@ -36,16 +36,16 @@ class ReStructuredText
      */
     public static function title($title, $level, $original = true)
     {
-        if($original) {
+        if ($original) {
             $title = self::original($title);
         }
         $str_len = strlen($title);
         $modifiers = ['=', '=', '-', '^', '"', '*'];
         $modifier = $modifiers[$level - 1];
         $str = '';
-        $str .= $title. "\r\n";
+        $str .= $title . "\r\n";
         $str .= str_repeat($modifier, $str_len) . "\r\n";
-        if($level == 1) {
+        if ($level == 1) {
             $str = str_repeat($modifier, $str_len) . "\r\n" . $str;
         }
         return $str;
@@ -96,7 +96,7 @@ class ReStructuredText
         $str .= "::\r\n\r\n";
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
-            if($original) {
+            if ($original) {
                 $line = self::original($line);
             }
             $str .= str_repeat(' ', $indent) . $line . "\r\n";
@@ -144,7 +144,7 @@ class ReStructuredText
      */
     protected static function simpleTable(array $rows, array $headers = [], $original = true)
     {
-        if($original) {
+        if ($original) {
             $temp_headers = [];
             foreach ($headers as $key => $title) {
                 $title = self::original($title);
@@ -154,7 +154,7 @@ class ReStructuredText
             $temp_rows = [];
             foreach ($rows as $row) {
                 $tem_row = $row;
-                if($headers) {
+                if ($headers) {
                     foreach ($headers as $key => $title) {
                         $tem_row[$key] = self::original($tem_row[$key]);
                     }
@@ -170,7 +170,7 @@ class ReStructuredText
 
         $lens = [];
         $index = 0;
-        if($headers) {
+        if ($headers) {
             foreach ($headers as $key => $title) {
                 $len = strlen($title);
                 foreach ($rows as $row) {
@@ -183,7 +183,7 @@ class ReStructuredText
                 $index++;
             }
         } else {
-            for ($idx = 1; $idx < count($rows[0]); $idx ++) {
+            for ($idx = 1; $idx < count($rows[0]); $idx++) {
                 $len = 0;
                 foreach ($rows as $row) {
                     $t_len = strlen($row[$idx]);
@@ -207,7 +207,7 @@ class ReStructuredText
             }
         }
 
-        if($headers) {
+        if ($headers) {
             $index = 0;
             foreach ($headers as $key => $title) {
                 $str .= self::cnStrPad($title, $lens[$index], ' ');
@@ -230,7 +230,7 @@ class ReStructuredText
 
         foreach ($rows as $row) {
             $index = 0;
-            if($headers) {
+            if ($headers) {
                 foreach ($headers as $key => $title) {
                     $str .= self::cnStrPad($row[$key], $lens[$index], ' ');
                     if ($index < $len_count - 1) {
@@ -274,7 +274,7 @@ class ReStructuredText
      */
     protected static function gridTable(array $rows, array $headers = [], $original = true)
     {
-        if($original) {
+        if ($original) {
             $temp_headers = [];
             foreach ($headers as $key => $title) {
                 $title = self::original($title);
@@ -284,7 +284,7 @@ class ReStructuredText
             $temp_rows = [];
             foreach ($rows as $row) {
                 $tem_row = $row;
-                if($headers) {
+                if ($headers) {
                     foreach ($headers as $key => $title) {
                         $tem_row[$key] = self::original($tem_row[$key]);
                     }
@@ -300,7 +300,7 @@ class ReStructuredText
 
         $lens = [];
         $index = 0;
-        if($headers) {
+        if ($headers) {
             foreach ($headers as $key => $title) {
                 $len = strlen($title);
                 foreach ($rows as $row) {
@@ -313,7 +313,7 @@ class ReStructuredText
                 $index++;
             }
         } else {
-            for ($idx = 1; $idx < count($rows[0]); $idx ++) {
+            for ($idx = 1; $idx < count($rows[0]); $idx++) {
                 $len = 0;
                 foreach ($rows as $row) {
                     $t_len = strlen($row[$idx]);
@@ -339,7 +339,7 @@ class ReStructuredText
             }
         }
 
-        if($headers) {
+        if ($headers) {
             $index = 0;
             $str .= '|';
             foreach ($headers as $key => $title) {
@@ -365,7 +365,7 @@ class ReStructuredText
         foreach ($rows as $row) {
             $index = 0;
             $str .= '|';
-            if($headers) {
+            if ($headers) {
                 foreach ($headers as $key => $title) {
                     $str .= self::cnStrPad($row[$key], $lens[$index], ' ');
                     if ($index < $len_count - 1) {
@@ -411,7 +411,7 @@ class ReStructuredText
      */
     public static function table(array $rows, array $headers = [], $original = true, $simple = false)
     {
-        if($simple) {
+        if ($simple) {
             $str = self::simpleTable($rows, $headers, $original);
         } else {
             $str = self::gridTable($rows, $headers, $original);
@@ -428,10 +428,10 @@ class ReStructuredText
     public static function link($title = '', $url = '')
     {
         $str = '';
-        if($title) {
+        if ($title) {
             $str .= $title;
         }
-        if($url) {
+        if ($url) {
             $str .= " <{$url}>";
         }
         $str = '`' . $str . '`_';
@@ -455,7 +455,7 @@ class ReStructuredText
 
         $lines = explode("\n", $desc);
         foreach ($lines as $line) {
-            if($original) {
+            if ($original) {
                 $line = self::original($line);
             }
             $str .= str_repeat(' ', $indent) . $line . "\r\n";
@@ -478,21 +478,21 @@ class ReStructuredText
 
         $str = '';
         $str .= ".. {$name}::";
-        if($desc) {
+        if ($desc) {
             $str .= " {$desc}";
         }
         $str .= "\r\n";
-        if($options) {
+        if ($options) {
             foreach ($options as $key => $value) {
                 $str .= "  :{$key}:";
-                if(!is_null($value)) {
+                if (!is_null($value)) {
                     $str .= " {$value}";
                 }
                 $str .= "\r\n";
             }
         }
         $str .= "\r\n";
-        if($content) {
+        if ($content) {
             $lines = explode("\n", $content);
             foreach ($lines as $line) {
                 $str .= '  ' . $line . "\r\n";

@@ -42,9 +42,9 @@ class Doc
      * @param string $file 文件路径
      * @param string $output 导出的文档路径
      * @param string $namespace 命名空间
-     * @param array $filters 过滤器
+     * @param array|bool $filters 过滤器
      */
-    public static function file($file, $output, $namespace = '', array $filters = [])
+    public static function file($file, $output, $namespace = '', $filters = null)
     {
         self::$handler::file($file, $output, $namespace, $filters);
     }
@@ -54,11 +54,12 @@ class Doc
      * @param string $dir 代码目录
      * @param string $output 指定生成文档目录
      * @param string $namespace 指定代码的顶级命名空间
+     * @param string $in 存放导出文档的目录
      * @param array $map 文件夹在文档中的命名
-     * @param array $filters 过滤器
+     * @param array|bool $filters 过滤器
      */
-    public static function dir($dir, $output, $namespace = '', array $map = [], array $filters = [])
+    public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)
     {
-        self::$handler::dir($dir, $output, $namespace, $map, $filters);
+        self::$handler::dir($dir, $output, $namespace, $in, $map, $filters);
     }
 }

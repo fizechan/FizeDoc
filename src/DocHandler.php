@@ -37,63 +37,30 @@ abstract class DocHandler
     /**
      * @var array 过滤器
      */
-    protected $filters = [
-        'class'    => [
-            'abstract'     => [false, true],
-            'anonymous'    => [false, true],
-            'cloneable'    => [false, true],
-            'final'        => [false, true],
-            'instantiable' => [false, true],
-            'interface'    => [false, true],
-            'internal'     => [false, true],
-            'iterable'     => [false, true],
-            'iterateable ' => [false, true],
-            'trait'        => [false, true],
-        ],
-        'constant' => [
-            'scope' => ['public', 'protected', 'private']
-        ],
-        'function' => [
-            'disabled'   => [false, true],
-            'closure'    => [false, true],
-            'deprecated' => [false, true],
-            'generator'  => [false, true],
-            'internal'   => [false, true],
-            'variadic'   => [false, true],
-        ],
-        'method'   => [
-            'scope'       => ['public', 'protected', 'private'],
-            'abstract'    => [false, true],
-            'constructor' => [false, true],
-            'destructor'  => [false, true],
-            'final'       => [false, true],
-            'static'      => [false, true],
-            'closure'     => [false, true],
-            'deprecated'  => [false, true],
-            'generator'   => [false, true],
-            'internal'    => [false, true],
-            'variadic'    => [false, true],
-        ],
-        'property' => [
-            'scope'   => ['public', 'protected', 'private'],
-            'default' => [false, true],
-            'static'  => [false, true]
-        ]
-    ];
+    protected $filters;
 
     /**
      * 初始化
+     *
+     * 参数 `$filters`:
+     *   array类型：在默认情况下再追加指定配置
+     *   bool类型：true：默认情况；false：返回全部
      * @param string $class 类全限定名
-     * @param array $filters 过滤器
+     * @param array|bool $filters 过滤器
      */
-    public function __construct($class, array $filters = [])
+    public function __construct($class, $filters = null)
     {
         $this->class = $class;
         $this->reflectionClass = new ReflectionClass($class);
         $this->docBlockFactory = DocBlockFactory::createInstance();
 
-        if($filters) {
+        $this->filters = $this->getFiltersDefault();
+        if (is_array($filters)) {
             $this->filter($filters);
+        } elseif ($filters === false) {
+            $this->filter($this->getFiltersAll());
+        } else {
+            $this->filter($this->getFiltersDefault());
         }
     }
 
@@ -135,22 +102,27 @@ abstract class DocHandler
 
     /**
      * 解析代码文件
+     *
+     * 如果定义了类过滤器且$check为true，在条件不符合的情况不生成文档
      * @param string $file 文件路径
      * @param string $output 导出的文档路径
      * @param string $namespace 命名空间
-     * @param array $filters 过滤器
+     * @param array|bool $filters 过滤器
+     * @param bool $check 是否检测类过滤器
+     * @return bool 是否生成文档
      */
-    abstract public static function file($file, $output, $namespace = '', array $filters = []);
+    abstract public static function file($file, $output, $namespace = '', $filters = null, $check = false);
 
     /**
      * 解析代码文件夹
      * @param string $dir 文件夹路径
-     * @param string $output 导出的文档目录路径
+     * @param string $output 保存文档的根目录
      * @param string $namespace 命名空间
+     * @param string $in 存放导出文档的目录
      * @param array $map 文件夹命名规范
-     * @param array $filters 过滤器
+     * @param array|bool $filters 过滤器
      */
-    abstract public static function dir($dir, $output, $namespace = '', array $map = [], array $filters = []);
+    abstract public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null);
 
     /**
      * 注册自动加载
@@ -158,10 +130,10 @@ abstract class DocHandler
      * @param string $namespace 命名空间
      * @noinspection PhpIncludeInspection
      */
-    protected static function register($dir, $namespace = '')
+    protected static function registerAutoload($dir, $namespace = '')
     {
         static $registerd_namespaces = [];
-        if(!isset($registerd_namespaces[$namespace])) {
+        if (!isset($registerd_namespaces[$namespace])) {
             spl_autoload_register(function ($class) use ($dir, $namespace) {
                 $class = str_replace($namespace, '', $class);
                 $file = str_replace('\\', DIRECTORY_SEPARATOR, "{$dir}/{$class}.php");
@@ -301,22 +273,22 @@ abstract class DocHandler
             'boolean' => 'bool'
         ];
         foreach ($types as $type) {
-            if(array_key_exists($type, $map)) {
+            if (array_key_exists($type, $map)) {
                 $type = $map[$type];
             }
-            if(strpos($type, '\\') === 0) {
+            if (strpos($type, '\\') === 0) {
                 $code = file_get_contents($this->reflectionClass->getFileName());
                 $type_name = substr($type, 1);
-                if(Preg::match("/[\n]+[\s]*use[\s]+([^\s]+)[\s]*as[\s]+" . $type_name . "[\s]*;[\s]*[\n]*/", $code, $matches)) {
+                if (Preg::match("/[\n]+[\s]*use[\s]+([^\s]+)[\s]*as[\s]+" . Preg::quote($type_name) . "[\s]*;[\s]*[\n]*/", $code, $matches)) {
                     //形如“use fize\db\definition\Db as Base;”的情况
                     $type = '\\' . $matches[1];
-                } elseif (Preg::match("/[\n]+[\s]*use[\s]+([^\s]+\\" . $type . ")[\s]*;[\s]*[\n]*/", $code, $matches)) {
+                } elseif (Preg::match("/[\n]+[\s]*use[\s]+([^\s]+\\" . Preg::quote($type) . ")[\s]*;[\s]*[\n]*/", $code, $matches)) {
                     //形如“use fize\db\definition\Db;”的情况
                     $type = '\\' . $matches[1];
                 } elseif (class_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
                     //类在同一个命名空间的情况
                     $type = '\\' . $this->reflectionClass->getNamespaceName() . $type;
-                } elseif(interface_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
+                } elseif (interface_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
                     //接口在同一个命名空间的情况
                     $type = '\\' . $this->reflectionClass->getNamespaceName() . $type;
                 }
@@ -335,7 +307,7 @@ abstract class DocHandler
     protected function getMethodParametersDoc(ReflectionMethod $method)
     {
         $doc = $method->getDocComment();
-        if(!$doc) {
+        if (!$doc) {
             return [];
         }
         $docblock = $this->docBlockFactory->create($doc);
@@ -346,10 +318,10 @@ abstract class DocHandler
              * @var Param $param
              */
             $docs[$param->getVariableName()] = [
-                'name'         => $param->getName(),
-                'type'         => $this->formatType($param->getType()),
-                'description'  => $param->getDescription()->render(),
-                'isVariadic'   => $param->isVariadic(),
+                'name'        => $param->getName(),
+                'type'        => $this->formatType($param->getType()),
+                'description' => $param->getDescription()->render(),
+                'isVariadic'  => $param->isVariadic(),
             ];
         }
         return $docs;
@@ -371,31 +343,31 @@ abstract class DocHandler
         $str_parameter = '';
         $docs = $this->getMethodParametersDoc($method);
         foreach ($method->getParameters() as $parameter) {
-            if($str_parameter) {
+            if ($str_parameter) {
                 $str_parameter .= ",\n";
             }
 
             $name = $parameter->getName();
             $str_parameter .= '    ';
-            if(isset($docs[$name])) {
-                $str_parameter .= $docs[$name]['type'] .' ';
+            if (isset($docs[$name])) {
+                $str_parameter .= $docs[$name]['type'] . ' ';
             } else {
                 $str_parameter .= 'mixed ';
             }
-            if($parameter->isPassedByReference()) {
+            if ($parameter->isPassedByReference()) {
                 $str_parameter .= '&';
             }
-            if($parameter->isVariadic()) {
+            if ($parameter->isVariadic()) {
                 $str_parameter .= '...';
             }
             $str_parameter .= '$' . $name;
 
-            if($parameter->isOptional() && !$parameter->isVariadic()) {
+            if ($parameter->isOptional() && !$parameter->isVariadic()) {
                 $str_parameter .= ' = ' . self::formatShowVariable($parameter->getDefaultValue());
             }
         }
 
-        if($str_parameter) {
+        if ($str_parameter) {
             $str .= "\n";
             $str .= $str_parameter;
             $str .= "\n";
@@ -404,18 +376,18 @@ abstract class DocHandler
         $str .= ')';
 
         $doc = $method->getDocComment();
-        if($doc) {
+        if ($doc) {
             $docblock = $this->docBlockFactory->create($doc);
             $returns = $docblock->getTagsByName('return');
             if ($returns) {
                 /**
-                 * @var Return_
+                 * @var Return_ $return
                  */
                 $return = $returns[0];
                 $return_type = $this->formatType($return->getType());
                 $str .= ' : ' . $return_type;
             }
-        }elseif ($method->hasReturnType()) {
+        } elseif ($method->hasReturnType()) {
             $return_type = 'mixed';
             $str .= ' : ' . $return_type;
         }
@@ -429,8 +401,130 @@ abstract class DocHandler
      * @param string $separator 间隔符
      * @return string
      */
-    protected static function uncamelize($camelCaps, $separator='_')
+    protected static function uncamelize($camelCaps, $separator = '_')
     {
         return strtolower(Preg::replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
+    }
+
+    /**
+     * 全部过滤器
+     * @return array
+     */
+    private function getFiltersAll()
+    {
+        return [
+            'class'    => [
+                'abstract'     => [false, true],  // 抽象类
+                'anonymous'    => [false, true],  // 匿名类
+                'cloneable'    => [false, true],  // 可复制
+                'final'        => [false, true],  // final
+                'instantiable' => [false, true],  // 可实例化
+                'interface'    => [false, true],  // 接口
+                'internal'     => [false, true],  // 系统类
+                'iterateable'  => [false, true],  // 可迭代
+                'trait'        => [false, true],  // trait
+            ],
+            'constant' => [
+                'scope' => ['public', 'protected', 'private']
+            ],
+            'function' => [
+                'disabled'   => [false, true],
+                'closure'    => [false, true],
+                'deprecated' => [false, true],
+                'generator'  => [false, true],
+                'internal'   => [false, true],
+                'variadic'   => [false, true],
+            ],
+            'method'   => [
+                'scope'       => ['public', 'protected', 'private'],
+                'abstract'    => [false, true],
+                'constructor' => [false, true],
+                'destructor'  => [false, true],
+                'final'       => [false, true],
+                'static'      => [false, true],
+                'closure'     => [false, true],
+                'deprecated'  => [false, true],
+                'generator'   => [false, true],
+                'internal'    => [false, true],
+                'variadic'    => [false, true],
+            ],
+            'property' => [
+                'scope'   => ['public', 'protected', 'private'],
+                'default' => [false, true],
+                'static'  => [false, true]
+            ]
+        ];
+    }
+
+    /**
+     * 默认过滤器
+     * @return array
+     */
+    private function getFiltersDefault()
+    {
+        return [
+            'class'    => [
+                'abstract'     => [false],
+                'anonymous'    => [false],
+                'cloneable'    => [false, true],
+                'final'        => [false, true],
+                'instantiable' => [false, true],
+                'interface'    => [false],
+                'internal'     => [false],
+                'iterateable' => [false, true],
+                'trait'        => [false],
+            ],
+            'constant' => [
+                'scope' => ['public']
+            ],
+            'function' => [
+                'disabled'   => [false],
+                'closure'    => [false],
+                'deprecated' => [false, true],
+                'generator'  => [false, true],
+                'internal'   => [false],
+                'variadic'   => [false, true],
+            ],
+            'method'   => [
+                'scope'       => ['public'],
+                'abstract'    => [false],
+                'constructor' => [false, true],
+                'destructor'  => [false, true],
+                'final'       => [false, true],
+                'static'      => [false, true],
+                'closure'     => [false],
+                'deprecated'  => [false, true],
+                'generator'   => [false, true],
+                'internal'    => [false],
+                'variadic'    => [false, true],
+            ],
+            'property' => [
+                'scope'   => ['public'],
+                'default' => [false, true],
+                'static'  => [false, true]
+            ]
+        ];
+    }
+
+    /**
+     * 检测当前类是否通过过滤器
+     * @return bool
+     */
+    public function checkClassFilters()
+    {
+        $filter = $this->filters['class'];
+
+        $abstract_map = in_array($this->reflectionClass->isAbstract(), $filter['abstract']);
+        $anonymous_map = in_array($this->reflectionClass->isAnonymous(), $filter['anonymous']);
+        $cloneable_map = in_array($this->reflectionClass->isCloneable(), $filter['cloneable']);
+        $final_map = in_array($this->reflectionClass->isFinal(), $filter['final']);
+        $instantiable_map = in_array($this->reflectionClass->isInstantiable(), $filter['instantiable']);
+        $interface_map = in_array($this->reflectionClass->isInterface(), $filter['interface']);
+        $internal_map = in_array($this->reflectionClass->isInternal(), $filter['internal']);
+        $iterateable_map = in_array($this->reflectionClass->isIterateable(), $filter['iterateable']);
+        $trait_map = in_array($this->reflectionClass->isTrait(), $filter['trait']);
+
+        return $abstract_map && $anonymous_map && $cloneable_map && $final_map && $instantiable_map &&
+            $interface_map && $internal_map && $iterateable_map && $trait_map;
     }
 }

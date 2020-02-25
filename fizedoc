@@ -1,22 +1,28 @@
 #!/usr/bin/env php
 <?php
 
-$file_dep = dirname(__FILE__) . "/../../autoload.php";
-if (file_exists($file_dep)) {
-    require_once $file_dep;
-} else {
-    $file_dev = dirname(__FILE__) . "/vendor/autoload.php";
-    if (file_exists($file_dev)) {
-        require_once $file_dev;
-    } else {
-        die("file `autoload.php` not found");
-    }
-}
-
-
 use fize\doc\Doc;
 use fize\io\File;
 use fize\io\Directory;
+
+/**
+ * 自动加载
+ * @noinspection PhpIncludeInspection
+ */
+function autoload()
+{
+    $file_dep = dirname(__FILE__) . "/../../autoload.php";
+    if (file_exists($file_dep)) {
+        require_once $file_dep;
+    } else {
+        $file_dev = dirname(__FILE__) . "/vendor/autoload.php";
+        if (file_exists($file_dev)) {
+            require_once $file_dev;
+        } else {
+            die("file `autoload.php` not found");
+        }
+    }
+}
 
 /**
  * 获取最终配置
@@ -29,9 +35,10 @@ function get_config()
     //d:指定代码文件夹
     //f:指定代码文件
     //h:指定处理器
+    //i:指定导出目录
     //n:指定命名空间
     //o:指定输出位置
-    $options = getopt("c:d:f:h:n:o:", ['config::', 'dir::', 'file::', 'handler::', 'namespace::', 'output::']);
+    $options = getopt("c:d:f:h:i:n:o:", ['config::', 'dir::', 'file::', 'handler::', 'in::', 'namespace::', 'output::']);
 
     $config = [];
     if (isset($options['c'])) {  //指定配置文件
@@ -51,49 +58,8 @@ function get_config()
         'dir'       => Directory::getcwd(),
         'output'    => Directory::getcwd() . '/output',
         'namespace' => '',
-        'filters'   => [
-            'class'    => [
-                'abstract'     => [false, true],
-                'anonymous'    => [false, true],
-                'cloneable'    => [false, true],
-                'final'        => [false, true],
-                'instantiable' => [false, true],
-                'interface'    => [false, true],
-                'internal'     => [false],
-                'iterable'     => [false, true],
-                'iterateable ' => [false, true],
-                'trait'        => [false, true],
-            ],
-            'constant' => [
-                'scope' => ['public']
-            ],
-            'function' => [
-                'disabled'   => [false, true],
-                'closure'    => [false, true],
-                'deprecated' => [false, true],
-                'generator'  => [false, true],
-                'internal'   => [false],
-                'variadic'   => [false, true],
-            ],
-            'method'   => [
-                'scope'       => ['public'],
-                'abstract'    => [false, true],
-                'constructor' => [false, true],
-                'destructor'  => [false, true],
-                'final'       => [false, true],
-                'static'      => [false, true],
-                'closure'     => [false, true],
-                'deprecated'  => [false, true],
-                'generator'   => [false, true],
-                'internal'    => [false],
-                'variadic'    => [false, true],
-            ],
-            'property' => [
-                'scope'   => ['public'],
-                'default' => [false, true],
-                'static'  => [false, true]
-            ]
-        ],
+        'in'        => null,
+        'filters'   => null,
         'map'       => [],
         'file'      => null
     ];
@@ -124,6 +90,14 @@ function get_config()
         $config['handler'] = $options['handler'];
     }
 
+    //指定导出目录
+    if (isset($options['i'])) {
+        $config['in'] = $options['i'];
+    }
+    if (isset($options['in'])) {
+        $config['in'] = $options['in'];
+    }
+
     //指定命名空间
     if (isset($options['n'])) {
         $config['namespace'] = $options['n'];
@@ -142,6 +116,8 @@ function get_config()
 
     return $config;
 }
+
+autoload();
 
 $config = get_config();
 
@@ -162,7 +138,7 @@ if ($config['file']) {
     }
 } else {
     echo "{$config['dir']} -> Directory Processing...\n";
-    Doc::dir($config['dir'], $config['output'], $config['namespace'], $config['map'], $config['filters']);
+    Doc::dir($config['dir'], $config['output'], $config['namespace'], $config['in'], $config['map'], $config['filters']);
     echo "{$config['dir']} -> Directory Done!\n";
 }
 
