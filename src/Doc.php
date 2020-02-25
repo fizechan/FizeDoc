@@ -43,10 +43,12 @@ class Doc
      * @param string $output 导出的文档路径
      * @param string $namespace 命名空间
      * @param array|bool $filters 过滤器
+     * @param bool $check 是否检测类过滤器
+     * @return bool 是否生成文档
      */
-    public static function file($file, $output, $namespace = '', $filters = null)
+    public static function file($file, $output, $namespace = '', $filters = null, $check = false)
     {
-        self::$handler::file($file, $output, $namespace, $filters);
+        return self::$handler::file($file, $output, $namespace, $filters, $check);
     }
 
     /**
