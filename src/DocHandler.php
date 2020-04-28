@@ -2,15 +2,14 @@
 
 namespace fize\doc;
 
-
 use Reflection;
 use ReflectionClass;
 use ReflectionClassConstant;
 use ReflectionMethod;
 use ReflectionProperty;
 use phpDocumentor\Reflection\DocBlockFactory;
-use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use fize\misc\Preg;
 
 /**
@@ -45,7 +44,7 @@ abstract class DocHandler
      * 参数 `$filters`:
      *   array类型：在默认情况下再追加指定配置
      *   bool类型：true：默认情况；false：返回全部
-     * @param string $class 类全限定名
+     * @param string     $class   类全限定名
      * @param array|bool $filters 过滤器
      */
     public function __construct($class, $filters = null)
@@ -104,29 +103,29 @@ abstract class DocHandler
      * 解析代码文件
      *
      * 如果定义了类过滤器且$check为true，在条件不符合的情况不生成文档
-     * @param string $file 文件路径
-     * @param string $output 导出的文档路径
-     * @param string $namespace 命名空间
-     * @param array|bool $filters 过滤器
-     * @param bool $check 是否检测类过滤器
+     * @param string     $file      文件路径
+     * @param string     $output    导出的文档路径
+     * @param string     $namespace 命名空间
+     * @param array|bool $filters   过滤器
+     * @param bool       $check     是否检测类过滤器
      * @return bool 是否生成文档
      */
     abstract public static function file($file, $output, $namespace = '', $filters = null, $check = false);
 
     /**
      * 解析代码文件夹
-     * @param string $dir 文件夹路径
-     * @param string $output 保存文档的根目录
-     * @param string $namespace 命名空间
-     * @param string $in 存放导出文档的目录
-     * @param array $map 文件夹命名规范
-     * @param array|bool $filters 过滤器
+     * @param string     $dir       文件夹路径
+     * @param string     $output    保存文档的根目录
+     * @param string     $namespace 命名空间
+     * @param string     $in        存放导出文档的目录
+     * @param array      $map       文件夹命名规范
+     * @param array|bool $filters   过滤器
      */
     abstract public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null);
 
     /**
      * 注册自动加载
-     * @param string $dir 要自动加载的文件夹
+     * @param string $dir       要自动加载的文件夹
      * @param string $namespace 命名空间
      * @noinspection PhpIncludeInspection
      */
@@ -471,7 +470,7 @@ abstract class DocHandler
                 'instantiable' => [false, true],
                 'interface'    => [false],
                 'internal'     => [false],
-                'iterateable' => [false, true],
+                'iterateable'  => [false, true],
                 'trait'        => [false],
             ],
             'constant' => [

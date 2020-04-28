@@ -1,16 +1,14 @@
 <?php
 
-
 namespace fize\doc\handler;
 
-use fize\doc\DocHandler;
-use fize\doc\handler\driver\Markdown as Mk;
 use Reflection;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
-use fize\io\File;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use fize\io\Directory;
-
+use fize\io\File;
+use fize\doc\DocHandler;
+use fize\doc\driver\Markdown as Mk;
 
 /**
  * 生成 md 文档
@@ -445,11 +443,11 @@ class Markdown extends DocHandler
      * 解析代码文件
      *
      * 如果定义了类过滤器且$check为true，在条件不符合的情况不生成文档
-     * @param string $file 文件路径
-     * @param string $output 导出的文档路径
-     * @param string $namespace 命名空间
-     * @param array|bool $filters 过滤器
-     * @param bool $check 是否检测类过滤器
+     * @param string     $file      文件路径
+     * @param string     $output    导出的文档路径
+     * @param string     $namespace 命名空间
+     * @param array|bool $filters   过滤器
+     * @param bool       $check     是否检测类过滤器
      * @return bool 是否生成文档
      */
     public static function file($file, $output, $namespace = '', $filters = null, $check = false)
@@ -468,12 +466,12 @@ class Markdown extends DocHandler
 
     /**
      * 解析代码文件夹
-     * @param string $dir 文件夹路径
-     * @param string $output 保存文档的根目录
-     * @param string $namespace 命名空间
-     * @param string $in 存放导出文档的目录
-     * @param array $map 文件夹命名规范
-     * @param array|bool $filters 过滤器
+     * @param string     $dir       文件夹路径
+     * @param string     $output    保存文档的根目录
+     * @param string     $namespace 命名空间
+     * @param string     $in        存放导出文档的目录
+     * @param array      $map       文件夹命名规范
+     * @param array|bool $filters   过滤器
      */
     public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)
     {
@@ -509,12 +507,12 @@ class Markdown extends DocHandler
 
     /**
      * 解析代码文件夹
-     * @param string $dir 文件夹路径
-     * @param string $output 保存文档的根目录
-     * @param string $namespace 命名空间
-     * @param string $in 存放导出文档的目录
-     * @param array $map 文件夹命名规范
-     * @param array|bool $filters 过滤器
+     * @param string     $dir       文件夹路径
+     * @param string     $output    保存文档的根目录
+     * @param string     $namespace 命名空间
+     * @param string     $in        存放导出文档的目录
+     * @param array      $map       文件夹命名规范
+     * @param array|bool $filters   过滤器
      * @return string 返回md用于生成目录的内容
      */
     private static function dirParse($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)

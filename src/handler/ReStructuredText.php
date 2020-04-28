@@ -1,15 +1,14 @@
 <?php
 
-
 namespace fize\doc\handler;
 
 use Reflection;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
-use fize\io\File;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use fize\io\Directory;
+use fize\io\File;
 use fize\doc\DocHandler;
-use fize\doc\handler\driver\ReStructuredText as Rst;
+use fize\doc\driver\ReStructuredText as Rst;
 
 /**
  * 解析源码，并生成对应 rst 文档格式

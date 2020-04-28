@@ -1,7 +1,6 @@
 <?php
 
-
-namespace fize\doc\handler\driver;
+namespace fize\doc\driver;
 
 /**
  * ReStructuredText 驱动
@@ -12,8 +11,8 @@ class ReStructuredText
 {
     /**
      * 原样输出字符串
-     * @param string $str 待输出字符串
-     * @param array $replaces 待替换字符
+     * @param string $str      待输出字符串
+     * @param array  $replaces 待替换字符
      * @return string
      */
     public static function original($str, array $replaces = [])
@@ -29,9 +28,9 @@ class ReStructuredText
 
     /**
      * 标题
-     * @param string $title 标题
-     * @param int $level 级别
-     * @param bool $original 是否原样输出标题
+     * @param string $title    标题
+     * @param int    $level    级别
+     * @param bool   $original 是否原样输出标题
      * @return string
      */
     public static function title($title, $level, $original = true)
@@ -53,7 +52,7 @@ class ReStructuredText
 
     /**
      * 修饰字符串
-     * @param string $str 待修饰字符串
+     * @param string $str      待修饰字符串
      * @param string $modifier 修饰符
      * @return string
      */
@@ -84,9 +83,9 @@ class ReStructuredText
 
     /**
      * 文字块
-     * @param string $content 内容
-     * @param int $indent 缩进
-     * @param bool $original 是否原样输出
+     * @param string $content  内容
+     * @param int    $indent   缩进
+     * @param bool   $original 是否原样输出
      * @return string
      */
     public static function block($content, $indent = 4, $original = true)
@@ -122,10 +121,10 @@ class ReStructuredText
 
     /**
      * 填充字符串到新长度，中文算2个，ascii字符算1个
-     * @param string $input 字符串
-     * @param int $pad_length 长度
+     * @param string $input      字符串
+     * @param int    $pad_length 长度
      * @param string $pad_string 填充字符
-     * @param int $pad_type 填充类型
+     * @param int    $pad_type   填充类型
      * @return string
      */
     protected static function cnStrPad($input, $pad_length, $pad_string = " ", $pad_type = 1)
@@ -137,9 +136,9 @@ class ReStructuredText
 
     /**
      * 简单表格
-     * @param array $rows 数据
-     * @param array $headers 表头
-     * @param bool $original 是否原样输出字符串(即非转义)
+     * @param array $rows     数据
+     * @param array $headers  表头
+     * @param bool  $original 是否原样输出字符串(即非转义)
      * @return string
      */
     protected static function simpleTable(array $rows, array $headers = [], $original = true)
@@ -267,9 +266,9 @@ class ReStructuredText
 
     /**
      * 网格表格
-     * @param array $headers 表头
-     * @param array $rows 数据
-     * @param bool $original 是否原样输出字符串(即非转义)
+     * @param array $headers  表头
+     * @param array $rows     数据
+     * @param bool  $original 是否原样输出字符串(即非转义)
      * @return string
      */
     protected static function gridTable(array $rows, array $headers = [], $original = true)
@@ -403,10 +402,10 @@ class ReStructuredText
 
     /**
      * 表格
-     * @param array $headers 表头
-     * @param array $rows 数据
-     * @param bool $original 是否原样输出字符串(即非转义)
-     * @param bool $simple 是否使用简易表格
+     * @param array $headers  表头
+     * @param array $rows     数据
+     * @param bool  $original 是否原样输出字符串(即非转义)
+     * @param bool  $simple   是否使用简易表格
      * @return string
      */
     public static function table(array $rows, array $headers = [], $original = true, $simple = false)
@@ -422,7 +421,7 @@ class ReStructuredText
     /**
      * 链接
      * @param string $title 显示字眼
-     * @param string $url 链接URL
+     * @param string $url   链接URL
      * @return string
      */
     public static function link($title = '', $url = '')
@@ -440,10 +439,10 @@ class ReStructuredText
 
     /**
      * 字段
-     * @param string $name 字段名
-     * @param string $desc 详细描述
-     * @param bool $original 是否原样输出详细描述
-     * @param int $indent 缩进
+     * @param string $name     字段名
+     * @param string $desc     详细描述
+     * @param bool   $original 是否原样输出详细描述
+     * @param int    $indent   缩进
      * @return string
      */
     public static function field($name, $desc, $original = true, $indent = 2)
@@ -466,9 +465,9 @@ class ReStructuredText
 
     /**
      * 指令
-     * @param string $name 指令名称
-     * @param string $desc 指令明细
-     * @param array $options 指令选项
+     * @param string $name    指令名称
+     * @param string $desc    指令明细
+     * @param array  $options 指令选项
      * @param string $content 附加内容
      * @return string
      */

@@ -1,6 +1,5 @@
 <?php
 
-
 namespace fize\doc;
 
 use RuntimeException;
@@ -39,11 +38,11 @@ class Doc
 
     /**
      * 解析代码文件
-     * @param string $file 文件路径
-     * @param string $output 导出的文档路径
-     * @param string $namespace 命名空间
-     * @param array|bool $filters 过滤器
-     * @param bool $check 是否检测类过滤器
+     * @param string     $file      文件路径
+     * @param string     $output    导出的文档路径
+     * @param string     $namespace 命名空间
+     * @param array|bool $filters   过滤器
+     * @param bool       $check     是否检测类过滤器
      * @return bool 是否生成文档
      */
     public static function file($file, $output, $namespace = '', $filters = null, $check = false)
@@ -53,12 +52,12 @@ class Doc
 
     /**
      * 解析代码文件夹
-     * @param string $dir 代码目录
-     * @param string $output 指定生成文档目录
-     * @param string $namespace 指定代码的顶级命名空间
-     * @param string $in 存放导出文档的目录
-     * @param array $map 文件夹在文档中的命名
-     * @param array|bool $filters 过滤器
+     * @param string     $dir       代码目录
+     * @param string     $output    指定生成文档目录
+     * @param string     $namespace 指定代码的顶级命名空间
+     * @param string     $in        存放导出文档的目录
+     * @param array      $map       文件夹在文档中的命名
+     * @param array|bool $filters   过滤器
      */
     public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)
     {

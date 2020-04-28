@@ -1,7 +1,6 @@
 <?php
 
-
-namespace fize\doc\handler\driver;
+namespace fize\doc\driver;
 
 /**
  * Markdown 驱动
@@ -12,8 +11,8 @@ class Markdown
 {
     /**
      * 原样输出字符串
-     * @param string $str 待输出字符串
-     * @param array $replaces 待替换字符
+     * @param string $str      待输出字符串
+     * @param array  $replaces 待替换字符
      * @return string
      */
     public static function original($str, array $replaces = [])
@@ -29,9 +28,9 @@ class Markdown
 
     /**
      * 标题
-     * @param string $title 标题
-     * @param int $level 级别
-     * @param bool $original 是否原样输出标题
+     * @param string $title    标题
+     * @param int    $level    级别
+     * @param bool   $original 是否原样输出标题
      * @return string
      */
     public static function title($title, $level, $original = true)
@@ -44,7 +43,7 @@ class Markdown
 
     /**
      * 修饰字符串
-     * @param string $str 待修饰字符串
+     * @param string $str      待修饰字符串
      * @param string $modifier 修饰符
      * @return string
      */
@@ -83,8 +82,8 @@ class Markdown
 
     /**
      * 文字块
-     * @param string $content 内容
-     * @param bool $original 是否原样输出
+     * @param string $content  内容
+     * @param bool   $original 是否原样输出
      * @return string
      */
     public static function block($content, $original = true)
@@ -103,9 +102,9 @@ class Markdown
 
     /**
      * 表格
-     * @param array $headers 表头
-     * @param array $rows 数据
-     * @param bool $original 是否原样输出字符串(即非转义)
+     * @param array $headers  表头
+     * @param array $rows     数据
+     * @param bool  $original 是否原样输出字符串(即非转义)
      * @return string
      */
     public static function table(array $rows, array $headers = [], $original = true)
@@ -229,8 +228,8 @@ class Markdown
     /**
      * 链接
      * @param string $content 显示内容
-     * @param string $url 链接URL
-     * @param string $title 标题
+     * @param string $url     链接URL
+     * @param string $title   标题
      * @return string
      */
     public static function link($content, $url, $title = null)
@@ -244,9 +243,9 @@ class Markdown
 
     /**
      * 字段
-     * @param string $name 字段名
-     * @param string $desc 详细描述
-     * @param bool $original 是否原样输出详细描述
+     * @param string $name     字段名
+     * @param string $desc     详细描述
+     * @param bool   $original 是否原样输出详细描述
      * @return string
      */
     public static function field($name, $desc, $original = true)
@@ -259,7 +258,7 @@ class Markdown
 
     /**
      * 代码块
-     * @param string $lang 语言
+     * @param string $lang    语言
      * @param string $content 内容
      * @return string
      */
@@ -292,10 +291,10 @@ class Markdown
 
     /**
      * 填充字符串到新长度，中文算2个，ascii字符算1个
-     * @param string $input 字符串
-     * @param int $pad_length 长度
+     * @param string $input      字符串
+     * @param int    $pad_length 长度
      * @param string $pad_string 填充字符
-     * @param int $pad_type 填充类型
+     * @param int    $pad_type   填充类型
      * @return string
      */
     protected static function cnStrPad($input, $pad_length, $pad_string = " ", $pad_type = 1)
