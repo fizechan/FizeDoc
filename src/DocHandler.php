@@ -2,15 +2,15 @@
 
 namespace fize\doc;
 
+use fize\misc\Preg;
+use phpDocumentor\Reflection\DocBlockFactory;
+use phpDocumentor\Reflection\DocBlock\Tags\Param;
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use Reflection;
 use ReflectionClass;
 use ReflectionClassConstant;
 use ReflectionMethod;
 use ReflectionProperty;
-use phpDocumentor\Reflection\DocBlockFactory;
-use phpDocumentor\Reflection\DocBlock\Tags\Param;
-use phpDocumentor\Reflection\DocBlock\Tags\Return_;
-use fize\misc\Preg;
 
 /**
  * 解析源码，并生成对应文档格式
@@ -47,7 +47,7 @@ abstract class DocHandler
      * @param string     $class   类全限定名
      * @param array|bool $filters 过滤器
      */
-    public function __construct($class, $filters = null)
+    public function __construct(string $class, $filters = null)
     {
         $this->class = $class;
         $this->reflectionClass = new ReflectionClass($class);
@@ -67,37 +67,37 @@ abstract class DocHandler
      * 解析类信息
      * @return string
      */
-    abstract protected function class();
+    abstract protected function class(): string;
 
     /**
      * 解析类大纲
      * @return string
      */
-    abstract protected function outline();
+    abstract protected function outline(): string;
 
     /**
      * 解析类常量
      * @return string
      */
-    abstract protected function constants();
+    abstract protected function constants(): string;
 
     /**
      * 解析类属性
      * @return string
      */
-    abstract protected function properties();
+    abstract protected function properties(): string;
 
     /**
      * 解析类方法
      * @return string
      */
-    abstract protected function methods();
+    abstract protected function methods(): string;
 
     /**
      * 解析
      * @return string
      */
-    abstract public function parse();
+    abstract public function parse(): string;
 
     /**
      * 解析代码文件
@@ -110,32 +110,31 @@ abstract class DocHandler
      * @param bool       $check     是否检测类过滤器
      * @return bool 是否生成文档
      */
-    abstract public static function file($file, $output, $namespace = '', $filters = null, $check = false);
+    abstract public static function file(string $file, string $output, string $namespace = '', $filters = null, bool $check = false): bool;
 
     /**
      * 解析代码文件夹
-     * @param string     $dir       文件夹路径
-     * @param string     $output    保存文档的根目录
-     * @param string     $namespace 命名空间
-     * @param string     $in        存放导出文档的目录
-     * @param array      $map       文件夹命名规范
-     * @param array|bool $filters   过滤器
+     * @param string      $dir       文件夹路径
+     * @param string      $output    保存文档的根目录
+     * @param string      $namespace 命名空间
+     * @param string|null $in        存放导出文档的目录
+     * @param array       $map       文件夹命名规范
+     * @param array|bool  $filters   过滤器
      */
-    abstract public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null);
+    abstract public static function dir(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null);
 
     /**
      * 注册自动加载
      * @param string $dir       要自动加载的文件夹
      * @param string $namespace 命名空间
-     * @noinspection PhpIncludeInspection
      */
-    protected static function registerAutoload($dir, $namespace = '')
+    protected static function registerAutoload(string $dir, string $namespace = '')
     {
         static $registerd_namespaces = [];
         if (!isset($registerd_namespaces[$namespace])) {
             spl_autoload_register(function ($class) use ($dir, $namespace) {
                 $class = str_replace($namespace, '', $class);
-                $file = str_replace('\\', DIRECTORY_SEPARATOR, "{$dir}/{$class}.php");
+                $file = str_replace('\\', DIRECTORY_SEPARATOR, "$dir/$class.php");
                 if (!is_file($file)) {
                     return false;
                 }
@@ -162,7 +161,7 @@ abstract class DocHandler
      * 取得常量数组
      * @return ReflectionClassConstant[]
      */
-    protected function getConstants()
+    protected function getConstants(): array
     {
         $filter = $this->filters['constant'];
         $constants = [];
@@ -181,7 +180,7 @@ abstract class DocHandler
      * 取得方法数组
      * @return ReflectionMethod[]
      */
-    protected function getMethods()
+    protected function getMethods(): array
     {
         $filter = $this->filters['method'];
         $methods = [];
@@ -214,7 +213,7 @@ abstract class DocHandler
      * 获取属性数组
      * @return ReflectionProperty[]
      */
-    protected function getProperties()
+    protected function getProperties(): array
     {
         $filter = $this->filters['property'];
         $properties = [];
@@ -237,7 +236,7 @@ abstract class DocHandler
      * @param mixed $variable 变量
      * @return string
      */
-    protected static function formatShowVariable($variable)
+    protected static function formatShowVariable($variable): string
     {
         if (is_array($variable)) {
             return json_encode($variable, JSON_UNESCAPED_UNICODE);
@@ -262,9 +261,8 @@ abstract class DocHandler
      * @param string $type 参数类型
      * @return string
      */
-    protected function formatType($type)
+    protected function formatType(string $type): string
     {
-        $type = (string)$type;
         $types = explode('|', $type);
         $tstrs = [];
         $map = [
@@ -303,7 +301,7 @@ abstract class DocHandler
      * @param ReflectionMethod $method 方法
      * @return array
      */
-    protected function getMethodParametersDoc(ReflectionMethod $method)
+    protected function getMethodParametersDoc(ReflectionMethod $method): array
     {
         $doc = $method->getDocComment();
         if (!$doc) {
@@ -331,7 +329,7 @@ abstract class DocHandler
      * @param ReflectionMethod $method 方法
      * @return string
      */
-    protected function getMethodDefinition(ReflectionMethod $method)
+    protected function getMethodDefinition(ReflectionMethod $method): string
     {
         $str = '';
 
@@ -400,7 +398,7 @@ abstract class DocHandler
      * @param string $separator 间隔符
      * @return string
      */
-    protected static function uncamelize($camelCaps, $separator = '_')
+    protected static function uncamelize(string $camelCaps, string $separator = '_'): string
     {
         return strtolower(Preg::replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
@@ -409,7 +407,7 @@ abstract class DocHandler
      * 全部过滤器
      * @return array
      */
-    private function getFiltersAll()
+    private function getFiltersAll(): array
     {
         return [
             'class'    => [
@@ -459,7 +457,7 @@ abstract class DocHandler
      * 默认过滤器
      * @return array
      */
-    private function getFiltersDefault()
+    private function getFiltersDefault(): array
     {
         return [
             'class'    => [
@@ -509,7 +507,7 @@ abstract class DocHandler
      * 检测当前类是否通过过滤器
      * @return bool
      */
-    public function checkClassFilters()
+    public function checkClassFilters(): bool
     {
         $filter = $this->filters['class'];
 

@@ -2,13 +2,13 @@
 
 namespace fize\doc\handler;
 
-use Reflection;
-use phpDocumentor\Reflection\DocBlock\Tags\Return_;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+use fize\doc\driver\Markdown as Mk;
+use fize\doc\DocHandler;
 use fize\io\Directory;
 use fize\io\File;
-use fize\doc\DocHandler;
-use fize\doc\driver\Markdown as Mk;
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+use Reflection;
 
 /**
  * 生成 md 文档
@@ -22,7 +22,7 @@ class Markdown extends DocHandler
      * 解析类信息
      * @return string
      */
-    protected function class()
+    protected function class(): string
     {
         $str = '';
 
@@ -99,7 +99,7 @@ class Markdown extends DocHandler
      * 解析类总览
      * @return string
      */
-    protected function outline()
+    protected function outline(): string
     {
         $str = '';
 
@@ -130,7 +130,7 @@ class Markdown extends DocHandler
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Mk::link($name, "#{$name}"),
+                    'name'    => Mk::link($name, "#$name"),
                     'type'    => $type,
                     'value'   => $value,
                     'summary' => $summary,
@@ -201,20 +201,20 @@ class Markdown extends DocHandler
             $datas = [];
             foreach ($methods as $method) {
                 $name = $method->getName();
-                $return = 'void';
+//                $return = 'void';
                 $doc = $method->getDocComment();
                 $summary = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
                     $summary = $docblock->getSummary();
-                    $returns = $docblock->getTagsByName('return');
-                    if ($returns) {
-                        /**
-                         * @var Return_ $return
-                         */
-                        //$return = $returns[0];
-                        //$return = $this->formatType($return->getType());
-                    }
+//                    $returns = $docblock->getTagsByName('return');
+//                    if ($returns) {
+//                        /**
+//                         * @var Return_ $return
+//                         */
+//                        $return = $returns[0];
+//                        $return = $this->formatType($return->getType());
+//                    }
                 }
                 $summary = Mk::original($summary);
                 //$return = Rst::original($return);
@@ -222,7 +222,7 @@ class Markdown extends DocHandler
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Mk::link("$name\(\)", "#" . self::toMdAnchor("{$name}()")),
+                    'name'    => Mk::link("$name\(\)", "#" . self::toMdAnchor("$name()")),
                     //'return'    => $return,
                     'summary' => $summary,
                 ];
@@ -238,7 +238,7 @@ class Markdown extends DocHandler
      * 解析类常量
      * @return string
      */
-    protected function constants()
+    protected function constants(): string
     {
         $str = '';
         $constants = $this->getConstants();
@@ -287,7 +287,7 @@ class Markdown extends DocHandler
      * 解析类属性
      * @return string
      */
-    protected function properties()
+    protected function properties(): string
     {
         $str = '';
         $properties = $this->getProperties();
@@ -349,7 +349,7 @@ class Markdown extends DocHandler
      * 解析类方法
      * @return string
      */
-    protected function methods()
+    protected function methods(): string
     {
         $str = '';
         $methods = $this->getMethods();
@@ -428,7 +428,7 @@ class Markdown extends DocHandler
      * 解析
      * @return string 返回MD格式文档字符串
      */
-    public function parse()
+    public function parse(): string
     {
         $str = '';
         $str .= $this->class();
@@ -450,7 +450,7 @@ class Markdown extends DocHandler
      * @param bool       $check     是否检测类过滤器
      * @return bool 是否生成文档
      */
-    public static function file($file, $output, $namespace = '', $filters = null, $check = false)
+    public static function file(string $file, string $output, string $namespace = '', $filters = null, bool $check = false): bool
     {
         $pathinfo = pathinfo($file);
         self::registerAutoload($pathinfo['dirname'], $namespace);
@@ -466,14 +466,14 @@ class Markdown extends DocHandler
 
     /**
      * 解析代码文件夹
-     * @param string     $dir       文件夹路径
-     * @param string     $output    保存文档的根目录
-     * @param string     $namespace 命名空间
-     * @param string     $in        存放导出文档的目录
-     * @param array      $map       文件夹命名规范
-     * @param array|bool $filters   过滤器
+     * @param string      $dir       文件夹路径
+     * @param string      $output    保存文档的根目录
+     * @param string      $namespace 命名空间
+     * @param string|null $in        存放导出文档的目录
+     * @param array       $map       文件夹命名规范
+     * @param array|bool  $filters   过滤器
      */
-    public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)
+    public static function dir(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null)
     {
         $idx_content = self::dirParse($dir, $output, $namespace, $in, $map, $filters);
         if ($in) {
@@ -481,59 +481,59 @@ class Markdown extends DocHandler
             if (isset($map[0])) {
                 $title = $map[0];
             }
-            $idx_content = "* [{$title}]({$in}/README.md)\n" . $idx_content;
-            if (File::exists($output . "/{$in}/README.md")) {
-                $fso = new File($output . "/{$in}/README.md", 'r');
-                $fso->copy($output . "/{$in}", "README.md." . date("YmdHis") . ".bak");
+            $idx_content = "* [$title]($in/README.md)\n" . $idx_content;
+            if (File::exists($output . "/$in/README.md")) {
+                $fso = new File($output . "/$in/README.md", 'r');
+                $fso->copy($output . "/$in", "README.md." . date("YmdHis") . ".bak");
             }
-            $fso = new File($output . "/{$in}/README.md", 'w+');
-            $fso->putContents("# {$title}\n");
+            $fso = new File($output . "/$in/README.md", 'w+');
+            $fso->putContents("# $title\n");
         }
         if (File::exists($output . "/README.md")) {
             $fso = new File($output . "/README.md", 'r');
             $fso->copy($output, "README.md." . date("YmdHis") . ".bak");
         }
         $fso = new File($output . '/README.md', 'w+');
-        $fso->putContents("# namespace：{$namespace}");
+        $fso->putContents("# namespace：$namespace");
 
         if (File::exists($output . "/SUMMARY.md")) {
             $fso = new File($output . "/SUMMARY.md", 'r');
             $fso->copy($output, "SUMMARY.md." . date("YmdHis") . ".bak");
         }
         $fso = new File($output . '/SUMMARY.md', 'w+');
-        $idx_content = str_replace(Mk::original("{$namespace}\\"), "", $idx_content);  //缩短命名空间
+        $idx_content = str_replace(Mk::original("$namespace\\"), "", $idx_content);  //缩短命名空间
         $fso->putContents($idx_content);
     }
 
     /**
      * 解析代码文件夹
-     * @param string     $dir       文件夹路径
-     * @param string     $output    保存文档的根目录
-     * @param string     $namespace 命名空间
-     * @param string     $in        存放导出文档的目录
-     * @param array      $map       文件夹命名规范
-     * @param array|bool $filters   过滤器
+     * @param string      $dir       文件夹路径
+     * @param string      $output    保存文档的根目录
+     * @param string      $namespace 命名空间
+     * @param string|null $in        存放导出文档的目录
+     * @param array       $map       文件夹命名规范
+     * @param array|bool  $filters   过滤器
      * @return string 返回md用于生成目录的内容
      */
-    private static function dirParse($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)
+    private static function dirParse(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null): string
     {
         self::registerAutoload($dir, $namespace);
 
         $org_output = $output;
         if ($in) {
-            $output .= "/{$in}";
+            $output .= "/$in";
         }
 
-        if (!Directory::isDir($output)) {
-            Directory::mk($output, 0777, true);
+        if (!Directory::exists($output)) {
+            new Directory($output, true);
         }
 
         $idx_content = '';
 
-        $items = Directory::scan($dir);
+        $items = (new Directory($dir))->scan();
         foreach ($items as $item) {
             $path = $dir . '/' . $item;
-            if (Directory::isDir($path)) {
+            if (Directory::exists($path)) {
                 if ($item == '.' || $item == '..') {
                     continue;
                 }
@@ -552,9 +552,9 @@ class Markdown extends DocHandler
                 $result = self::file($path, $output . '/' . $save_file, $namespace, $filters, true);
                 if ($result) {
                     if ($in) {
-                        $idx_content .= "   * [" . Mk::original($namespace . '\\' . $pathinfo['filename']) . "]({$in}/{$save_file})\n";
+                        $idx_content .= "   * [" . Mk::original($namespace . '\\' . $pathinfo['filename']) . "]($in/$save_file)\n";
                     } else {
-                        $idx_content .= "* [" . Mk::original($namespace . '\\' . $pathinfo['filename']) . "]({$save_file})\n";
+                        $idx_content .= "* [" . Mk::original($namespace . '\\' . $pathinfo['filename']) . "]($save_file)\n";
                     }
                 }
             }
@@ -568,7 +568,7 @@ class Markdown extends DocHandler
      * @param string $class 类名
      * @return string
      */
-    private static function toMdFilename($class)
+    private static function toMdFilename(string $class): string
     {
         $name = self::uncamelize($class);
         $name = str_replace('\\', '_', $name);
@@ -582,7 +582,7 @@ class Markdown extends DocHandler
      * @param string $str 原字符串
      * @return string
      */
-    private static function toMdAnchor($str)
+    private static function toMdAnchor(string $str): string
     {
         $str = strtolower($str);
         $str = str_replace(' ', '-', $str);

@@ -15,7 +15,7 @@ class Markdown
      * @param array  $replaces 待替换字符
      * @return string
      */
-    public static function original($str, array $replaces = [])
+    public static function original(string $str, array $replaces = []): string
     {
         if (!$replaces) {
             $replaces = ['\\', '=', '-', '#', '*', '_', '~', '[', ']', '^', '(', ')'];
@@ -33,7 +33,7 @@ class Markdown
      * @param bool   $original 是否原样输出标题
      * @return string
      */
-    public static function title($title, $level, $original = true)
+    public static function title(string $title, int $level, bool $original = true): string
     {
         if ($original) {
             $title = self::original($title);
@@ -47,7 +47,7 @@ class Markdown
      * @param string $modifier 修饰符
      * @return string
      */
-    public static function modify($str, $modifier)
+    public static function modify(string $str, string $modifier): string
     {
         return $modifier . $str . $modifier;
     }
@@ -57,7 +57,7 @@ class Markdown
      * @param string $str 待修饰字符串
      * @return string
      */
-    public static function modifyEmphasis($str)
+    public static function modifyEmphasis(string $str): string
     {
         return self::modify($str, '*');
     }
@@ -67,7 +67,7 @@ class Markdown
      * @param string $content 待修饰字符串
      * @return string
      */
-    public static function modifyQuote($content)
+    public static function modifyQuote(string $content): string
     {
         $str = '';
         $lines = explode("\n", $content);
@@ -86,7 +86,7 @@ class Markdown
      * @param bool   $original 是否原样输出
      * @return string
      */
-    public static function block($content, $original = true)
+    public static function block(string $content, bool $original = true): string
     {
         $str = '';
         $lines = explode("\n", $content);
@@ -107,7 +107,7 @@ class Markdown
      * @param bool  $original 是否原样输出字符串(即非转义)
      * @return string
      */
-    public static function table(array $rows, array $headers = [], $original = true)
+    public static function table(array $rows, array $headers = [], bool $original = true): string
     {
         if ($original) {
             $temp_headers = [];
@@ -166,11 +166,11 @@ class Markdown
 
         if ($headers) {
             $index = 0;
-            foreach ($headers as $key => $title) {
+            foreach ($headers as $title) {
                 if ($index == 0) {
                     $str .= '|';
                 }
-                $str .= self::cnStrPad($title, $lens[$index], ' ');
+                $str .= self::cnStrPad($title, $lens[$index]);
                 if ($index < $len_count - 1) {
                     $str .= '|';
                 } else {
@@ -182,7 +182,7 @@ class Markdown
                 if ($index == 0) {
                     $str .= '|';
                 }
-                $str .= self::cnStrPad('', $lens[$index], '-');
+                $str .= self::cnStrPad('', $len, '-');
                 if ($index < $len_count - 1) {
                     $str .= '|';
                 } else {
@@ -198,7 +198,7 @@ class Markdown
                     if ($index == 0) {
                         $str .= '|';
                     }
-                    $str .= self::cnStrPad($row[$key], $lens[$index], ' ');
+                    $str .= self::cnStrPad($row[$key], $lens[$index]);
                     if ($index < $len_count - 1) {
                         $str .= '|';
                     } else {
@@ -207,11 +207,11 @@ class Markdown
                     $index++;
                 }
             } else {
-                foreach ($row as $idx => $value) {
+                foreach ($row as $value) {
                     if ($index == 0) {
                         $str .= '|';
                     }
-                    $str .= self::cnStrPad($value, $lens[$index], ' ');
+                    $str .= self::cnStrPad($value, $lens[$index]);
                     if ($index < $len_count - 1) {
                         $str .= '|';
                     } else {
@@ -227,17 +227,17 @@ class Markdown
 
     /**
      * 链接
-     * @param string $content 显示内容
-     * @param string $url     链接URL
-     * @param string $title   标题
+     * @param string      $content 显示内容
+     * @param string      $url     链接URL
+     * @param string|null $title   标题
      * @return string
      */
-    public static function link($content, $url, $title = null)
+    public static function link(string $content, string $url, string $title = null): string
     {
         if ($title) {
-            return "[{$content}]({$url} \"{$title}\")";
+            return "[$content]($url \"$title\")";
         } else {
-            return "[{$content}]({$url})";
+            return "[$content]($url)";
         }
     }
 
@@ -248,12 +248,12 @@ class Markdown
      * @param bool   $original 是否原样输出详细描述
      * @return string
      */
-    public static function field($name, $desc, $original = true)
+    public static function field(string $name, string $desc, bool $original = true): string
     {
         if ($original) {
             $desc = self::original($desc);
         }
-        return "**{$name}**\r\n> {$desc}";
+        return "**$name**\r\n> $desc";
     }
 
     /**
@@ -262,10 +262,9 @@ class Markdown
      * @param string $content 内容
      * @return string
      */
-    public static function code($lang, $content)
+    public static function code(string $lang, string $content): string
     {
-        $str = '';
-        $str .= "```{$lang}\r\n";
+        $str = "```$lang\r\n";
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
             $str .= $line . "\r\n";
@@ -279,7 +278,7 @@ class Markdown
      * @param string $str 字符串
      * @return int
      */
-    protected static function abslength($str)
+    protected static function abslength(string $str): int
     {
         //规定占位为1的字符
         $fix1s = ['“', '”'];
@@ -297,7 +296,7 @@ class Markdown
      * @param int    $pad_type   填充类型
      * @return string
      */
-    protected static function cnStrPad($input, $pad_length, $pad_string = " ", $pad_type = 1)
+    protected static function cnStrPad(string $input, int $pad_length, string $pad_string = " ", int $pad_type = 1): string
     {
         $pad_plus = strlen($input) - self::abslength($input);
         $pad_length = $pad_length + $pad_plus;

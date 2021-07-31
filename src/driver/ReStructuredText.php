@@ -15,7 +15,7 @@ class ReStructuredText
      * @param array  $replaces 待替换字符
      * @return string
      */
-    public static function original($str, array $replaces = [])
+    public static function original(string $str, array $replaces = []): string
     {
         if (!$replaces) {
             $replaces = ['\\'];
@@ -33,7 +33,7 @@ class ReStructuredText
      * @param bool   $original 是否原样输出标题
      * @return string
      */
-    public static function title($title, $level, $original = true)
+    public static function title(string $title, int $level, bool $original = true): string
     {
         if ($original) {
             $title = self::original($title);
@@ -41,8 +41,7 @@ class ReStructuredText
         $str_len = strlen($title);
         $modifiers = ['=', '=', '-', '^', '"', '*'];
         $modifier = $modifiers[$level - 1];
-        $str = '';
-        $str .= $title . "\r\n";
+        $str = $title . "\r\n";
         $str .= str_repeat($modifier, $str_len) . "\r\n";
         if ($level == 1) {
             $str = str_repeat($modifier, $str_len) . "\r\n" . $str;
@@ -56,7 +55,7 @@ class ReStructuredText
      * @param string $modifier 修饰符
      * @return string
      */
-    public static function modify($str, $modifier)
+    public static function modify(string $str, string $modifier): string
     {
         return $modifier . $str . $modifier;
     }
@@ -66,7 +65,7 @@ class ReStructuredText
      * @param string $str 待修饰字符串
      * @return string
      */
-    public static function modifyEmphasis($str)
+    public static function modifyEmphasis(string $str): string
     {
         return self::modify($str, '*');
     }
@@ -76,7 +75,7 @@ class ReStructuredText
      * @param string $str 待修饰字符串
      * @return string
      */
-    public static function modifyQuote($str)
+    public static function modifyQuote(string $str): string
     {
         return self::modify($str, '`');
     }
@@ -88,10 +87,9 @@ class ReStructuredText
      * @param bool   $original 是否原样输出
      * @return string
      */
-    public static function block($content, $indent = 4, $original = true)
+    public static function block(string $content, int $indent = 4, bool $original = true): string
     {
-        $str = '';
-        $str .= "\r\n";
+        $str = "\r\n";
         $str .= "::\r\n\r\n";
         $lines = explode("\n", $content);
         foreach ($lines as $line) {
@@ -109,9 +107,9 @@ class ReStructuredText
      * @param string $str 字符串
      * @return int
      */
-    protected static function abslength($str)
+    protected static function abslength(string $str): int
     {
-        //规定占位为1的字符
+        // 规定占位为1的字符
         $fix1s = ['“', '”'];
         foreach ($fix1s as $fix1) {
             $str = str_replace($fix1, '*', $str);
@@ -127,7 +125,7 @@ class ReStructuredText
      * @param int    $pad_type   填充类型
      * @return string
      */
-    protected static function cnStrPad($input, $pad_length, $pad_string = " ", $pad_type = 1)
+    protected static function cnStrPad(string $input, int $pad_length, string $pad_string = " ", int $pad_type = 1): string
     {
         $pad_plus = strlen($input) - self::abslength($input);
         $pad_length = $pad_length + $pad_plus;
@@ -141,7 +139,7 @@ class ReStructuredText
      * @param bool  $original 是否原样输出字符串(即非转义)
      * @return string
      */
-    protected static function simpleTable(array $rows, array $headers = [], $original = true)
+    protected static function simpleTable(array $rows, array $headers = [], bool $original = true): string
     {
         if ($original) {
             $temp_headers = [];
@@ -208,8 +206,8 @@ class ReStructuredText
 
         if ($headers) {
             $index = 0;
-            foreach ($headers as $key => $title) {
-                $str .= self::cnStrPad($title, $lens[$index], ' ');
+            foreach ($headers as $title) {
+                $str .= self::cnStrPad($title, $lens[$index]);
                 if ($index < $len_count - 1) {
                     $str .= ' ';
                 } else {
@@ -231,7 +229,7 @@ class ReStructuredText
             $index = 0;
             if ($headers) {
                 foreach ($headers as $key => $title) {
-                    $str .= self::cnStrPad($row[$key], $lens[$index], ' ');
+                    $str .= self::cnStrPad($row[$key], $lens[$index]);
                     if ($index < $len_count - 1) {
                         $str .= ' ';
                     } else {
@@ -240,8 +238,8 @@ class ReStructuredText
                     $index++;
                 }
             } else {
-                foreach ($row as $idx => $value) {
-                    $str .= self::cnStrPad($value, $lens[$index], ' ');
+                foreach ($row as $value) {
+                    $str .= self::cnStrPad($value, $lens[$index]);
                     if ($index < $len_count - 1) {
                         $str .= ' ';
                     } else {
@@ -271,7 +269,7 @@ class ReStructuredText
      * @param bool  $original 是否原样输出字符串(即非转义)
      * @return string
      */
-    protected static function gridTable(array $rows, array $headers = [], $original = true)
+    protected static function gridTable(array $rows, array $headers = [], bool $original = true): string
     {
         if ($original) {
             $temp_headers = [];
@@ -326,9 +324,7 @@ class ReStructuredText
         }
         $len_count = count($lens);
 
-        $str = '';
-
-        $str .= '+';
+        $str = '+';
         foreach ($lens as $index => $len) {
             $str .= str_repeat('-', $len);
             if ($index < $len_count - 1) {
@@ -341,8 +337,8 @@ class ReStructuredText
         if ($headers) {
             $index = 0;
             $str .= '|';
-            foreach ($headers as $key => $title) {
-                $str .= self::cnStrPad($title, $lens[$index], ' ');
+            foreach ($headers as $title) {
+                $str .= self::cnStrPad($title, $lens[$index]);
                 if ($index < $len_count - 1) {
                     $str .= '|';
                 } else {
@@ -366,7 +362,7 @@ class ReStructuredText
             $str .= '|';
             if ($headers) {
                 foreach ($headers as $key => $title) {
-                    $str .= self::cnStrPad($row[$key], $lens[$index], ' ');
+                    $str .= self::cnStrPad($row[$key], $lens[$index]);
                     if ($index < $len_count - 1) {
                         $str .= '|';
                     } else {
@@ -375,8 +371,8 @@ class ReStructuredText
                     $index++;
                 }
             } else {
-                foreach ($row as $idx => $value) {
-                    $str .= self::cnStrPad($value, $lens[$index], ' ');
+                foreach ($row as $value) {
+                    $str .= self::cnStrPad($value, $lens[$index]);
                     if ($index < $len_count - 1) {
                         $str .= '|';
                     } else {
@@ -408,7 +404,7 @@ class ReStructuredText
      * @param bool  $simple   是否使用简易表格
      * @return string
      */
-    public static function table(array $rows, array $headers = [], $original = true, $simple = false)
+    public static function table(array $rows, array $headers = [], bool $original = true, bool $simple = false): string
     {
         if ($simple) {
             $str = self::simpleTable($rows, $headers, $original);
@@ -424,17 +420,16 @@ class ReStructuredText
      * @param string $url   链接URL
      * @return string
      */
-    public static function link($title = '', $url = '')
+    public static function link(string $title = '', string $url = ''): string
     {
         $str = '';
         if ($title) {
             $str .= $title;
         }
         if ($url) {
-            $str .= " <{$url}>";
+            $str .= " <$url>";
         }
-        $str = '`' . $str . '`_';
-        return $str;
+        return '`' . $str . '`_';
     }
 
     /**
@@ -445,12 +440,11 @@ class ReStructuredText
      * @param int    $indent   缩进
      * @return string
      */
-    public static function field($name, $desc, $original = true, $indent = 2)
+    public static function field(string $name, string $desc, bool $original = true, int $indent = 2): string
     {
         $desc = str_replace("\r\n", "\n", $desc);
 
-        $str = '';
-        $str .= ":{$name}:\r\n";
+        $str = ":$name:\r\n";
 
         $lines = explode("\n", $desc);
         foreach ($lines as $line) {
@@ -471,21 +465,20 @@ class ReStructuredText
      * @param string $content 附加内容
      * @return string
      */
-    public static function directive($name, $desc, array $options = [], $content = '')
+    public static function directive(string $name, string $desc, array $options = [], string $content = ''): string
     {
         $desc = str_replace("\r\n", "\n", $desc);
 
-        $str = '';
-        $str .= ".. {$name}::";
+        $str = ".. $name::";
         if ($desc) {
-            $str .= " {$desc}";
+            $str .= " $desc";
         }
         $str .= "\r\n";
         if ($options) {
             foreach ($options as $key => $value) {
-                $str .= "  :{$key}:";
+                $str .= "  :$key:";
                 if (!is_null($value)) {
-                    $str .= " {$value}";
+                    $str .= " $value";
                 }
                 $str .= "\r\n";
             }

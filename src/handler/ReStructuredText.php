@@ -2,13 +2,13 @@
 
 namespace fize\doc\handler;
 
-use Reflection;
-use phpDocumentor\Reflection\DocBlock\Tags\Return_;
-use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+use fize\doc\driver\ReStructuredText as Rst;
+use fize\doc\DocHandler;
 use fize\io\Directory;
 use fize\io\File;
-use fize\doc\DocHandler;
-use fize\doc\driver\ReStructuredText as Rst;
+use phpDocumentor\Reflection\DocBlock\Tags\Return_;
+use phpDocumentor\Reflection\DocBlock\Tags\Var_;
+use Reflection;
 
 /**
  * 解析源码，并生成对应 rst 文档格式
@@ -20,7 +20,7 @@ class ReStructuredText extends DocHandler
      * 解析类信息
      * @return string
      */
-    protected function class()
+    protected function class(): string
     {
         $str = '';
 
@@ -97,7 +97,7 @@ class ReStructuredText extends DocHandler
      * 解析类总览
      * @return string
      */
-    protected function outline()
+    protected function outline(): string
     {
         $str = '';
 
@@ -199,20 +199,20 @@ class ReStructuredText extends DocHandler
             $datas = [];
             foreach ($methods as $method) {
                 $name = $method->getName();
-                $return = 'void';
+//                $return = 'void';
                 $doc = $method->getDocComment();
                 $summary = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
                     $summary = $docblock->getSummary();
                     $returns = $docblock->getTagsByName('return');
-                    if ($returns) {
-                        /**
-                         * @var Return_ $return
-                         */
-                        //$return = $returns[0];
-                        //$return = $this->formatType($return->getType());
-                    }
+//                    if ($returns) {
+//                        /**
+//                         * @var Return_ $return
+//                         */
+//                        $return = $returns[0];
+//                        $return = $this->formatType($return->getType());
+//                    }
                 }
                 $summary = Rst::original($summary);
                 //$return = Rst::original($return);
@@ -236,7 +236,7 @@ class ReStructuredText extends DocHandler
      * 解析类常量
      * @return string
      */
-    protected function constants()
+    protected function constants(): string
     {
         $str = '';
         $constants = $this->getConstants();
@@ -285,7 +285,7 @@ class ReStructuredText extends DocHandler
      * 解析类属性
      * @return string
      */
-    protected function properties()
+    protected function properties(): string
     {
         $str = '';
         $properties = $this->getProperties();
@@ -347,7 +347,7 @@ class ReStructuredText extends DocHandler
      * 解析类方法
      * @return string
      */
-    protected function methods()
+    protected function methods(): string
     {
         $str = '';
         $methods = $this->getMethods();
@@ -426,7 +426,7 @@ class ReStructuredText extends DocHandler
      * 解析
      * @return string 返回RST格式文档字符串
      */
-    public function parse()
+    public function parse(): string
     {
         $str = '';
         $str .= $this->class();
@@ -441,14 +441,14 @@ class ReStructuredText extends DocHandler
      * 解析代码文件
      *
      * 如果定义了类过滤器且$check为true，在条件不符合的情况不生成文档
-     * @param string $file 文件路径
-     * @param string $output 导出的文档路径
-     * @param string $namespace 命名空间
-     * @param array|bool $filters 过滤器
-     * @param bool $check 是否检测类过滤器
+     * @param string     $file      文件路径
+     * @param string     $output    导出的文档路径
+     * @param string     $namespace 命名空间
+     * @param array|bool $filters   过滤器
+     * @param bool       $check     是否检测类过滤器
      * @return bool 是否生成文档
      */
-    public static function file($file, $output, $namespace = '', $filters = null, $check = false)
+    public static function file(string $file, string $output, string $namespace = '', $filters = null, bool $check = false): bool
     {
         $pathinfo = pathinfo($file);
         self::registerAutoload($pathinfo['dirname'], $namespace);
@@ -464,14 +464,14 @@ class ReStructuredText extends DocHandler
 
     /**
      * 解析代码文件夹
-     * @param string $dir 文件夹路径
-     * @param string $output 保存文档的根目录
-     * @param string $namespace 命名空间
-     * @param string $in 存放导出文档的目录
-     * @param array $map 文件夹命名规范
-     * @param array|bool $filters 过滤器
+     * @param string      $dir       文件夹路径
+     * @param string      $output    保存文档的根目录
+     * @param string      $namespace 命名空间
+     * @param string|null $in        存放导出文档的目录
+     * @param array       $map       文件夹命名规范
+     * @param array|bool  $filters   过滤器
      */
-    public static function dir($dir, $output, $namespace = '', $in = null, array $map = [], $filters = null)
+    public static function dir(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null)
     {
         if ($in) {
             $output = $output . '/' . $in;
@@ -479,16 +479,16 @@ class ReStructuredText extends DocHandler
 
         self::registerAutoload($dir, $namespace);
 
-        if (!Directory::isDir($output)) {
-            Directory::mk($output, 0777, true);
+        if (!Directory::exists($output)) {
+            new Directory($output, true);
         }
 
         $idxcontent = '';
 
-        $items = Directory::scan($dir);
+        $items = (new Directory($dir))->scan();
         foreach ($items as $item) {
             $path = $dir . '/' . $item;
-            if (Directory::isDir($path)) {
+            if (Directory::exists($path)) {
                 if ($item == '.' || $item == '..') {
                     continue;
                 }
