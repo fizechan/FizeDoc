@@ -77,7 +77,7 @@ class Markdown
         $str .= "\r\n";
         return $str;
 
-        //return "> {$str}";
+//        return "> $str";
     }
 
     /**
@@ -280,7 +280,7 @@ class Markdown
      */
     protected static function abslength(string $str): int
     {
-        //规定占位为1的字符
+        // 规定占位为1的字符
         $fix1s = ['“', '”'];
         foreach ($fix1s as $fix1) {
             $str = str_replace($fix1, '*', $str);

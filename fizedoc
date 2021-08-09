@@ -2,12 +2,9 @@
 <?php
 
 use fize\doc\Doc;
-use fize\io\File;
-use fize\io\Directory;
 
 /**
  * 自动加载
- * @noinspection PhpIncludeInspection
  */
 function autoload()
 {
@@ -19,44 +16,44 @@ function autoload()
         if (file_exists($file_dev)) {
             require_once $file_dev;
         } else {
-            die("file `autoload.php` not found");
+            throw new RuntimeException("file `autoload.php` not found");
         }
     }
 }
 
 /**
  * 获取最终配置
- * @noinspection PhpIncludeInspection
  * @return array
  */
-function get_config()
+function get_config(): array
 {
-    //c:指定配置文件
-    //d:指定代码文件夹
-    //f:指定代码文件
-    //h:指定处理器
-    //i:指定导出目录
-    //n:指定命名空间
-    //o:指定输出位置
+    // config(c):指定配置文件
+    // dir(d):指定代码文件夹
+    // file(f):指定代码文件
+    // handler(h):指定处理器
+    // in(i):指定导出目录
+    // namespace(n):指定命名空间
+    // output(o):指定输出位置
     $options = getopt("c:d:f:h:i:n:o:", ['config::', 'dir::', 'file::', 'handler::', 'in::', 'namespace::', 'output::']);
 
     $config = [];
-    if (isset($options['c'])) {  //指定配置文件
+    if (isset($options['c'])) {  // 指定配置文件
         $cfg_file = $options['c'];
         $config = require_once $cfg_file;
     } elseif (isset($options['config'])) {
         $cfg_file = $options['config'];
         $config = require_once $cfg_file;
-    } else {  //默认配置文件
-        if (File::exists(Directory::getcwd() . '/fizedoc.php')) {
-            $config = require_once Directory::getcwd() . '/fizedoc.php';
+    } else {  // 默认配置文件
+        $cfg_file = getcwd() . '/fizedoc.php';
+        if (is_file($cfg_file)) {
+            $config = require_once $cfg_file;
         }
     }
 
     $default_config = [
         'handler'   => 'ReStructuredText',
-        'dir'       => Directory::getcwd(),
-        'output'    => Directory::getcwd() . '/output',
+        'dir'       => getcwd(),
+        'output'    => getcwd() . '/output',
         'namespace' => '',
         'in'        => null,
         'filters'   => null,
@@ -127,9 +124,9 @@ new Doc($config['handler']);
 if ($config['file']) {
     if (is_array($config['file'])) {
         foreach ($config['file'] as $file) {
-            echo "{$file} -> File Processing...\n";
+            echo "$file -> File Processing...\n";
             Doc::file($file, $config['output'], $config['namespace'], $config['filters']);
-            echo "{$file} -> File Done!\n";
+            echo "$file -> File Done!\n";
         }
     } else {
         echo "{$config['file']} -> File Processing...\n";

@@ -205,7 +205,7 @@ class ReStructuredText extends DocHandler
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
                     $summary = $docblock->getSummary();
-                    $returns = $docblock->getTagsByName('return');
+//                    $returns = $docblock->getTagsByName('return');
 //                    if ($returns) {
 //                        /**
 //                         * @var Return_ $return

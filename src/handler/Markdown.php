@@ -589,7 +589,7 @@ class Markdown extends DocHandler
         $str = str_replace('_', '', $str);
         $str = str_replace('(', '', $str);
         $str = str_replace(')', '', $str);
-        //%28%29 为字符串“()”的实体
+        // %28%29 为字符串“()”的实体
         return $str;
     }
 }

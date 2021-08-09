@@ -2,7 +2,6 @@
 
 namespace fize\doc;
 
-use fize\misc\Preg;
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
@@ -276,10 +275,10 @@ abstract class DocHandler
             if (strpos($type, '\\') === 0) {
                 $code = file_get_contents($this->reflectionClass->getFileName());
                 $type_name = substr($type, 1);
-                if (Preg::match("/[\n]+[\s]*use[\s]+([^\s]+)[\s]*as[\s]+" . Preg::quote($type_name) . "[\s]*;[\s]*[\n]*/", $code, $matches)) {
+                if (preg_match("/[\n]+[\s]*use[\s]+([^\s]+)[\s]*as[\s]+" . preg_quote($type_name) . "[\s]*;[\s]*[\n]*/", $code, $matches)) {
                     //形如“use fize\db\definition\Db as Base;”的情况
                     $type = '\\' . $matches[1];
-                } elseif (Preg::match("/[\n]+[\s]*use[\s]+([^\s]+\\" . Preg::quote($type) . ")[\s]*;[\s]*[\n]*/", $code, $matches)) {
+                } elseif (preg_match("/[\n]+[\s]*use[\s]+([^\s]+\\" . preg_quote($type) . ")[\s]*;[\s]*[\n]*/", $code, $matches)) {
                     //形如“use fize\db\definition\Db;”的情况
                     $type = '\\' . $matches[1];
                 } elseif (class_exists('\\' . $this->reflectionClass->getNamespaceName() . $type)) {
@@ -400,7 +399,7 @@ abstract class DocHandler
      */
     protected static function uncamelize(string $camelCaps, string $separator = '_'): string
     {
-        return strtolower(Preg::replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
+        return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
     }
 
     /**
