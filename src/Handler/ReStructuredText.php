@@ -1,21 +1,19 @@
 <?php
 
-namespace fize\doc\handler;
+namespace Fize\Doc\Handler;
 
-use fize\doc\driver\Markdown as Mk;
-use fize\doc\DocHandler;
-use fize\io\Directory;
-use fize\io\File;
+use Fize\Doc\Driver\ReStructuredText as RST;
+use Fize\Doc\DocHandler;
+use Fize\IO\Directory;
+use Fize\IO\File;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use Reflection;
 
 /**
- * 生成 md 文档
- *
- * 解析源码，并生成对应 md 文档格式
+ * 解析源码，并生成对应 rst 文档格式
  */
-class Markdown extends DocHandler
+class ReStructuredText extends DocHandler
 {
 
     /**
@@ -31,13 +29,13 @@ class Markdown extends DocHandler
             $docblock = $this->docBlockFactory->create($doc);
             $summary = $docblock->getSummary();
             //标题
-            $str .= Mk::title($summary, 1);
+            $str .= RST::title($summary, 1);
             $str .= "\r\n";
             //描述
             $description = $docblock->getDescription();
             $description = $description->render();
             if ($description) {
-                $str .= Mk::block($description);
+                $str .= RST::block($description);
             }
         }
         $str .= "\r\n";
@@ -49,13 +47,13 @@ class Markdown extends DocHandler
         ];
         $datas = [];
 
-        $namespace = Mk::original($this->reflectionClass->getNamespaceName());
+        $namespace = RST::original($this->reflectionClass->getNamespaceName());
         $datas[] = [
             'attr'  => '命名空间',
             'value' => $namespace,
         ];
 
-        $classname = Mk::original($this->reflectionClass->getShortName());
+        $classname = RST::original($this->reflectionClass->getShortName());
         $datas[] = [
             'attr'  => '类名',
             'value' => $classname
@@ -72,7 +70,7 @@ class Markdown extends DocHandler
 
         $parent_class = $this->reflectionClass->getParentClass();
         if ($parent_class) {
-            $parent_class = Mk::original($parent_class->getName());
+            $parent_class = RST::original($parent_class->getName());
             $datas[] = [
                 'attr'  => '父类',
                 'value' => $parent_class //@todo 超链接
@@ -82,14 +80,14 @@ class Markdown extends DocHandler
         $interfaces = $this->reflectionClass->getInterfaceNames();
         if ($interfaces) {
             $interfaces = implode(', ', $interfaces);
-            $interfaces = Mk::original($interfaces);
+            $interfaces = RST::original($interfaces);
             $datas[] = [
                 'attr'  => '实现接口',
                 'value' => $interfaces  //@todo 超链接
             ];
         }
 
-        $str .= Mk::table($datas, $headers, false);
+        $str .= RST::table($datas, $headers, false);
         $str .= "\r\n";
 
         return $str;
@@ -106,7 +104,7 @@ class Markdown extends DocHandler
         //常量
         $constants = $this->getConstants();
         if ($constants) {
-            $str .= Mk::field('常量', '');
+            $str .= RST::field('常量', '', false, 0);
             $headers = [
                 //'modifiers' => '修饰符',
                 'name'    => '名称',
@@ -119,31 +117,31 @@ class Markdown extends DocHandler
                 $name = $constant->getName();
                 $value = $constant->getValue();
                 $type = $this->formatType(gettype($value));
-                $value = Mk::original(self::formatShowVariable($value));
+                $value = RST::original(self::formatShowVariable($value));
                 $doc = $constant->getDocComment();
                 $summary = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
-                    $summary = Mk::original($docblock->getSummary());
+                    $summary = RST::original($docblock->getSummary());
                 }
                 //$modifiers = Reflection::getModifierNames($constant->getModifiers());
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Mk::link($name, "#$name"),
+                    'name'    => RST::link($name),
                     'type'    => $type,
                     'value'   => $value,
                     'summary' => $summary,
                 ];
             }
-            $str .= Mk::table($datas, $headers, false);
+            $str .= RST::table($datas, $headers, false);
             $str .= "\r\n";
         }
 
         //属性
         $properties = $this->getProperties();
         if ($properties) {
-            $str .= Mk::field('属性', "\r\n");
+            $str .= RST::field('属性', '', false, 0);
             $headers = [
                 //'modifiers' => '修饰符',
                 'name'    => '名称',
@@ -172,26 +170,26 @@ class Markdown extends DocHandler
                         }
                     }
                 }
-                $summary = Mk::original($summary);
-                //$type = Rst::original($type);
+                $summary = RST::original($summary);
+                //$type = RST::original($type);
                 //$modifiers = Reflection::getModifierNames($property->getModifiers());
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Mk::link($name, "#" . self::toMdAnchor($name)),
+                    'name'    => RST::link($name),
                     //'type'      => $type,
                     'summary' => $summary,
                 ];
             }
 
-            $str .= Mk::table($datas, $headers, false);
+            $str .= RST::table($datas, $headers, false);
             $str .= "\r\n";
         }
 
         //方法
         $methods = $this->getMethods();
         if ($methods) {
-            $str .= Mk::field('方法', "\r\n");
+            $str .= RST::field('方法', '', false, 0);
             $headers = [
                 //'modifiers' => '修饰符',
                 'name'    => '方法名',
@@ -216,19 +214,19 @@ class Markdown extends DocHandler
 //                        $return = $this->formatType($return->getType());
 //                    }
                 }
-                $summary = Mk::original($summary);
-                //$return = Rst::original($return);
+                $summary = RST::original($summary);
+                //$return = RST::original($return);
                 //$modifiers = Reflection::getModifierNames($method->getModifiers());
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Mk::link("$name\(\)", "#" . self::toMdAnchor("$name()")),
+                    'name'    => RST::link($name . '()'),
                     //'return'    => $return,
                     'summary' => $summary,
                 ];
             }
 
-            $str .= Mk::table($datas, $headers, false);
+            $str .= RST::table($datas, $headers, false);
             $str .= "\r\n";
         }
         return $str;
@@ -243,7 +241,7 @@ class Markdown extends DocHandler
         $str = '';
         $constants = $this->getConstants();
         if ($constants) {
-            $str .= Mk::title('常量', 2);
+            $str .= RST::title('常量', 2);
             foreach ($constants as $constant) {
                 $name = $constant->getName();
                 $value = $constant->getValue();
@@ -263,16 +261,16 @@ class Markdown extends DocHandler
                 $modifiers = Reflection::getModifierNames($constant->getModifiers());
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
 
-                $str .= Mk::title($name, 3);
+                $str .= RST::title($name, 3);
                 if ($summary) {
                     $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
-                $str .= Mk::field('修饰符', $modifiers);
-                $str .= Mk::field('类型', $type);
-                $str .= Mk::field('值', $value);
+                $str .= RST::field('修饰符', $modifiers);
+                $str .= RST::field('类型', $type);
+                $str .= RST::field('值', $value);
                 if ($desc) {
-                    $str .= Mk::block($desc);
+                    $str .= RST::block($desc);
                 }
 
                 //@todo 说明及用例
@@ -292,7 +290,7 @@ class Markdown extends DocHandler
         $str = '';
         $properties = $this->getProperties();
         if ($properties) {
-            $str .= Mk::title('属性', 2);
+            $str .= RST::title('属性', 2);
             $default_properties = $this->reflectionClass->getDefaultProperties();
             foreach ($properties as $property) {
                 $name = $property->getName();
@@ -322,19 +320,19 @@ class Markdown extends DocHandler
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $value = key_exists($name, $default_properties) ? self::formatShowVariable($default_properties[$name]) : 'null';
 
-                $str .= Mk::title($name, 3);
+                $str .= RST::title($name, 3);
                 if ($summary) {
                     $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
-                $str .= Mk::field('修饰符', $modifiers);
-                $str .= Mk::field('类型', $type);
-                $str .= Mk::field('默认值', $value);
+                $str .= RST::field('修饰符', $modifiers);
+                $str .= RST::field('类型', $type);
+                $str .= RST::field('默认值', $value);
                 if ($var_desc) {
-                    $str .= Mk::block($var_desc);
+                    $str .= RST::block($var_desc);
                 }
                 if ($desc) {
-                    $str .= Mk::block($desc);
+                    $str .= RST::block($desc);
                 }
 
                 //@todo 说明及用例
@@ -354,7 +352,7 @@ class Markdown extends DocHandler
         $str = '';
         $methods = $this->getMethods();
         if ($methods) {
-            $str .= Mk::title('方法', 2);
+            $str .= RST::title('方法', 2);
             foreach ($methods as $method) {
                 $name = $method->getName();
                 $doc = $method->getDocComment();
@@ -369,13 +367,13 @@ class Markdown extends DocHandler
                     }
                 }
 
-                $str .= Mk::title($name . "()", 3);
+                $str .= RST::title($name . '()', 3);
                 if ($summary) {
                     $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
 
-                $str .= Mk::code('php', $this->getMethodDefinition($method));
+                $str .= RST::directive('code-block', 'php', [], $this->getMethodDefinition($method));
 
                 $parameters = $method->getParameters();
                 if ($parameters) {
@@ -393,8 +391,8 @@ class Markdown extends DocHandler
                             'summary' => isset($docs[$name]) ? $docs[$name]['description'] : '',
                         ];
                     }
-                    $str_table = Mk::table($datas, $headers);
-                    $str .= Mk::field('参数', "\r\n" . $str_table, false);
+                    $str_table = RST::table($datas, $headers);
+                    $str .= RST::field('参数', $str_table, false);
                 }
 
                 if ($doc) {
@@ -407,13 +405,13 @@ class Markdown extends DocHandler
                         $return = $returns[0];
                         $return_desc = $return->getDescription();
                         if ($return_desc && (string)$return_desc) {
-                            $str .= Mk::field('返回值', $return_desc);
+                            $str .= RST::field('返回值', $return_desc);
                         }
                     }
                 }
 
                 if ($desc) {
-                    $str .= Mk::block($desc);
+                    $str .= RST::block($desc);
                 }
 
                 //@todo 说明及用例
@@ -426,7 +424,7 @@ class Markdown extends DocHandler
 
     /**
      * 解析
-     * @return string 返回MD格式文档字符串
+     * @return string 返回RST格式文档字符串
      */
     public function parse(): string
     {
@@ -454,11 +452,11 @@ class Markdown extends DocHandler
     {
         $pathinfo = pathinfo($file);
         self::registerAutoload($pathinfo['dirname'], $namespace);
-        $mk = new static($namespace . '\\' . $pathinfo['filename'], $filters);
-        if ($check && !$mk->checkClassFilters()) {
+        $rst = new static($namespace . '\\' . $pathinfo['filename'], $filters);
+        if ($check && !$rst->checkClassFilters()) {
             return false;
         }
-        $content = $mk->parse();
+        $content = $rst->parse();
         $fso = new File($output, 'w+');
         $fso->putContents($content);
         return true;
@@ -475,60 +473,17 @@ class Markdown extends DocHandler
      */
     public static function dir(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null)
     {
-        $idx_content = self::dirParse($dir, $output, $namespace, $in, $map, $filters);
         if ($in) {
-            $title = $in;
-            if (isset($map[0])) {
-                $title = $map[0];
-            }
-            $idx_content = "* [$title]($in/README.md)\n" . $idx_content;
-            if (File::exists($output . "/$in/README.md")) {
-                $fso = new File($output . "/$in/README.md", 'r');
-                $fso->copy($output . "/$in", "README.md." . date("YmdHis") . ".bak");
-            }
-            $fso = new File($output . "/$in/README.md", 'w+');
-            $fso->putContents("# $title\n");
+            $output = $output . '/' . $in;
         }
-        if (File::exists($output . "/README.md")) {
-            $fso = new File($output . "/README.md", 'r');
-            $fso->copy($output, "README.md." . date("YmdHis") . ".bak");
-        }
-        $fso = new File($output . '/README.md', 'w+');
-        $fso->putContents("# namespace：$namespace");
 
-        if (File::exists($output . "/SUMMARY.md")) {
-            $fso = new File($output . "/SUMMARY.md", 'r');
-            $fso->copy($output, "SUMMARY.md." . date("YmdHis") . ".bak");
-        }
-        $fso = new File($output . '/SUMMARY.md', 'w+');
-        $idx_content = str_replace(Mk::original("$namespace\\"), "", $idx_content);  //缩短命名空间
-        $fso->putContents($idx_content);
-    }
-
-    /**
-     * 解析代码文件夹
-     * @param string      $dir       文件夹路径
-     * @param string      $output    保存文档的根目录
-     * @param string      $namespace 命名空间
-     * @param string|null $in        存放导出文档的目录
-     * @param array       $map       文件夹命名规范
-     * @param array|bool  $filters   过滤器
-     * @return string 返回md用于生成目录的内容
-     */
-    private static function dirParse(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null): string
-    {
         self::registerAutoload($dir, $namespace);
-
-        $org_output = $output;
-        if ($in) {
-            $output .= "/$in";
-        }
 
         if (!Directory::exists($output)) {
             new Directory($output, true);
         }
 
-        $idx_content = '';
+        $idxcontent = '';
 
         $items = (new Directory($dir))->scan();
         foreach ($items as $item) {
@@ -538,58 +493,39 @@ class Markdown extends DocHandler
                     continue;
                 }
 
+                if ($idxcontent) {
+                    $idxcontent .= "\n";
+                }
+                $idxcontent .= $item . "/index";
+
                 $sub_map = [];
                 if (isset($map[1]) && isset($map[1][$item])) {
                     $sub_map = $map[1][$item];
                 }
 
-                $idx_content .= self::dirParse($path, $org_output, $namespace . '\\' . $item, $in, $sub_map, $filters);
+                self::dir($path, $output . '/' . $item, $namespace . '\\' . $item, null, $sub_map, $filters);
             } else {
                 $pathinfo = pathinfo($path);
-
-                $save_file = self::toMdFilename($namespace . '\\' . $pathinfo['filename']) . '.md';
-
-                $result = self::file($path, $output . '/' . $save_file, $namespace, $filters, true);
+                $save_file = $output . '/' . self::uncamelize($pathinfo['filename']) . '.rst';
+                $result = self::file($path, $save_file, $namespace, $filters, true);
                 if ($result) {
-                    if ($in) {
-                        $idx_content .= "   * [" . Mk::original($namespace . '\\' . $pathinfo['filename']) . "]($in/$save_file)\n";
-                    } else {
-                        $idx_content .= "* [" . Mk::original($namespace . '\\' . $pathinfo['filename']) . "]($save_file)\n";
+                    if ($idxcontent) {
+                        $idxcontent .= "\n";
                     }
+                    $idxcontent .= self::uncamelize($pathinfo['filename']);
                 }
             }
         }
-
-        return $idx_content;
-    }
-
-    /**
-     * 将类名转化为md文件名
-     * @param string $class 类名
-     * @return string
-     */
-    private static function toMdFilename(string $class): string
-    {
-        $name = self::uncamelize($class);
-        $name = str_replace('\\', '_', $name);
-        return $name;
-    }
-
-    /**
-     * 返回md定义的锚点名称
-     *
-     * md锚点转化需要满足一定格式
-     * @param string $str 原字符串
-     * @return string
-     */
-    private static function toMdAnchor(string $str): string
-    {
-        $str = strtolower($str);
-        $str = str_replace(' ', '-', $str);
-        $str = str_replace('_', '', $str);
-        $str = str_replace('(', '', $str);
-        $str = str_replace(')', '', $str);
-        // %28%29 为字符串“()”的实体
-        return $str;
+        //创建index.rst
+        $idxstr = '';
+        $title = basename($dir);
+        if (isset($map[0])) {
+            $title = $map[0];
+        }
+        $idxstr .= RST::title($title, 1);
+        $idxstr .= "\r\n\r\n";
+        $idxstr .= RST::directive('toctree', '', ['maxdepth' => 2, 'glob' => null], $idxcontent);
+        $fso = new File($output . '/index.rst', 'w+');
+        $fso->putContents($idxstr);
     }
 }

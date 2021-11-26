@@ -1,6 +1,6 @@
 <?php
 
-namespace fize\doc;
+namespace Fize\Doc;
 
 use phpDocumentor\Reflection\DocBlockFactory;
 use phpDocumentor\Reflection\DocBlock\Tags\Param;

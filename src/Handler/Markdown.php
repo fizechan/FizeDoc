@@ -1,19 +1,21 @@
 <?php
 
-namespace fize\doc\handler;
+namespace Fize\Doc\Handler;
 
-use fize\doc\driver\ReStructuredText as Rst;
-use fize\doc\DocHandler;
-use fize\io\Directory;
-use fize\io\File;
+use Fize\Doc\Driver\Markdown as MD;
+use Fize\Doc\DocHandler;
+use Fize\IO\Directory;
+use Fize\IO\File;
 use phpDocumentor\Reflection\DocBlock\Tags\Return_;
 use phpDocumentor\Reflection\DocBlock\Tags\Var_;
 use Reflection;
 
 /**
- * 解析源码，并生成对应 rst 文档格式
+ * 生成 md 文档
+ *
+ * 解析源码，并生成对应 md 文档格式
  */
-class ReStructuredText extends DocHandler
+class Markdown extends DocHandler
 {
 
     /**
@@ -29,13 +31,13 @@ class ReStructuredText extends DocHandler
             $docblock = $this->docBlockFactory->create($doc);
             $summary = $docblock->getSummary();
             //标题
-            $str .= Rst::title($summary, 1);
+            $str .= MD::title($summary, 1);
             $str .= "\r\n";
             //描述
             $description = $docblock->getDescription();
             $description = $description->render();
             if ($description) {
-                $str .= Rst::block($description);
+                $str .= MD::block($description);
             }
         }
         $str .= "\r\n";
@@ -47,13 +49,13 @@ class ReStructuredText extends DocHandler
         ];
         $datas = [];
 
-        $namespace = Rst::original($this->reflectionClass->getNamespaceName());
+        $namespace = MD::original($this->reflectionClass->getNamespaceName());
         $datas[] = [
             'attr'  => '命名空间',
             'value' => $namespace,
         ];
 
-        $classname = Rst::original($this->reflectionClass->getShortName());
+        $classname = MD::original($this->reflectionClass->getShortName());
         $datas[] = [
             'attr'  => '类名',
             'value' => $classname
@@ -70,7 +72,7 @@ class ReStructuredText extends DocHandler
 
         $parent_class = $this->reflectionClass->getParentClass();
         if ($parent_class) {
-            $parent_class = Rst::original($parent_class->getName());
+            $parent_class = MD::original($parent_class->getName());
             $datas[] = [
                 'attr'  => '父类',
                 'value' => $parent_class //@todo 超链接
@@ -80,14 +82,14 @@ class ReStructuredText extends DocHandler
         $interfaces = $this->reflectionClass->getInterfaceNames();
         if ($interfaces) {
             $interfaces = implode(', ', $interfaces);
-            $interfaces = Rst::original($interfaces);
+            $interfaces = MD::original($interfaces);
             $datas[] = [
                 'attr'  => '实现接口',
                 'value' => $interfaces  //@todo 超链接
             ];
         }
 
-        $str .= Rst::table($datas, $headers, false);
+        $str .= MD::table($datas, $headers, false);
         $str .= "\r\n";
 
         return $str;
@@ -104,7 +106,7 @@ class ReStructuredText extends DocHandler
         //常量
         $constants = $this->getConstants();
         if ($constants) {
-            $str .= Rst::field('常量', '', false, 0);
+            $str .= MD::field('常量', '');
             $headers = [
                 //'modifiers' => '修饰符',
                 'name'    => '名称',
@@ -117,31 +119,31 @@ class ReStructuredText extends DocHandler
                 $name = $constant->getName();
                 $value = $constant->getValue();
                 $type = $this->formatType(gettype($value));
-                $value = Rst::original(self::formatShowVariable($value));
+                $value = MD::original(self::formatShowVariable($value));
                 $doc = $constant->getDocComment();
                 $summary = '';
                 if ($doc) {
                     $docblock = $this->docBlockFactory->create($doc);
-                    $summary = Rst::original($docblock->getSummary());
+                    $summary = MD::original($docblock->getSummary());
                 }
                 //$modifiers = Reflection::getModifierNames($constant->getModifiers());
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Rst::link($name),
+                    'name'    => MD::link($name, "#$name"),
                     'type'    => $type,
                     'value'   => $value,
                     'summary' => $summary,
                 ];
             }
-            $str .= Rst::table($datas, $headers, false);
+            $str .= MD::table($datas, $headers, false);
             $str .= "\r\n";
         }
 
         //属性
         $properties = $this->getProperties();
         if ($properties) {
-            $str .= Rst::field('属性', '', false, 0);
+            $str .= MD::field('属性', "\r\n");
             $headers = [
                 //'modifiers' => '修饰符',
                 'name'    => '名称',
@@ -170,26 +172,26 @@ class ReStructuredText extends DocHandler
                         }
                     }
                 }
-                $summary = Rst::original($summary);
+                $summary = MD::original($summary);
                 //$type = Rst::original($type);
                 //$modifiers = Reflection::getModifierNames($property->getModifiers());
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Rst::link($name),
+                    'name'    => MD::link($name, "#" . self::toMdAnchor($name)),
                     //'type'      => $type,
                     'summary' => $summary,
                 ];
             }
 
-            $str .= Rst::table($datas, $headers, false);
+            $str .= MD::table($datas, $headers, false);
             $str .= "\r\n";
         }
 
         //方法
         $methods = $this->getMethods();
         if ($methods) {
-            $str .= Rst::field('方法', '', false, 0);
+            $str .= MD::field('方法', "\r\n");
             $headers = [
                 //'modifiers' => '修饰符',
                 'name'    => '方法名',
@@ -214,19 +216,19 @@ class ReStructuredText extends DocHandler
 //                        $return = $this->formatType($return->getType());
 //                    }
                 }
-                $summary = Rst::original($summary);
+                $summary = MD::original($summary);
                 //$return = Rst::original($return);
                 //$modifiers = Reflection::getModifierNames($method->getModifiers());
                 //$modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $datas[] = [
                     //'modifiers' => $modifiers,
-                    'name'    => Rst::link($name . '()'),
+                    'name'    => MD::link("$name\(\)", "#" . self::toMdAnchor("$name()")),
                     //'return'    => $return,
                     'summary' => $summary,
                 ];
             }
 
-            $str .= Rst::table($datas, $headers, false);
+            $str .= MD::table($datas, $headers, false);
             $str .= "\r\n";
         }
         return $str;
@@ -241,7 +243,7 @@ class ReStructuredText extends DocHandler
         $str = '';
         $constants = $this->getConstants();
         if ($constants) {
-            $str .= Rst::title('常量', 2);
+            $str .= MD::title('常量', 2);
             foreach ($constants as $constant) {
                 $name = $constant->getName();
                 $value = $constant->getValue();
@@ -261,16 +263,16 @@ class ReStructuredText extends DocHandler
                 $modifiers = Reflection::getModifierNames($constant->getModifiers());
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
 
-                $str .= Rst::title($name, 3);
+                $str .= MD::title($name, 3);
                 if ($summary) {
                     $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
-                $str .= Rst::field('修饰符', $modifiers);
-                $str .= Rst::field('类型', $type);
-                $str .= Rst::field('值', $value);
+                $str .= MD::field('修饰符', $modifiers);
+                $str .= MD::field('类型', $type);
+                $str .= MD::field('值', $value);
                 if ($desc) {
-                    $str .= Rst::block($desc);
+                    $str .= MD::block($desc);
                 }
 
                 //@todo 说明及用例
@@ -290,7 +292,7 @@ class ReStructuredText extends DocHandler
         $str = '';
         $properties = $this->getProperties();
         if ($properties) {
-            $str .= Rst::title('属性', 2);
+            $str .= MD::title('属性', 2);
             $default_properties = $this->reflectionClass->getDefaultProperties();
             foreach ($properties as $property) {
                 $name = $property->getName();
@@ -320,19 +322,19 @@ class ReStructuredText extends DocHandler
                 $modifiers = $modifiers ? implode(' ', $modifiers) : '';
                 $value = key_exists($name, $default_properties) ? self::formatShowVariable($default_properties[$name]) : 'null';
 
-                $str .= Rst::title($name, 3);
+                $str .= MD::title($name, 3);
                 if ($summary) {
                     $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
-                $str .= Rst::field('修饰符', $modifiers);
-                $str .= Rst::field('类型', $type);
-                $str .= Rst::field('默认值', $value);
+                $str .= MD::field('修饰符', $modifiers);
+                $str .= MD::field('类型', $type);
+                $str .= MD::field('默认值', $value);
                 if ($var_desc) {
-                    $str .= Rst::block($var_desc);
+                    $str .= MD::block($var_desc);
                 }
                 if ($desc) {
-                    $str .= Rst::block($desc);
+                    $str .= MD::block($desc);
                 }
 
                 //@todo 说明及用例
@@ -352,7 +354,7 @@ class ReStructuredText extends DocHandler
         $str = '';
         $methods = $this->getMethods();
         if ($methods) {
-            $str .= Rst::title('方法', 2);
+            $str .= MD::title('方法', 2);
             foreach ($methods as $method) {
                 $name = $method->getName();
                 $doc = $method->getDocComment();
@@ -367,13 +369,13 @@ class ReStructuredText extends DocHandler
                     }
                 }
 
-                $str .= Rst::title($name . '()', 3);
+                $str .= MD::title($name . "()", 3);
                 if ($summary) {
                     $str .= $summary;
                 }
                 $str .= "\r\n\r\n";
 
-                $str .= Rst::directive('code-block', 'php', [], $this->getMethodDefinition($method));
+                $str .= MD::code('php', $this->getMethodDefinition($method));
 
                 $parameters = $method->getParameters();
                 if ($parameters) {
@@ -391,8 +393,8 @@ class ReStructuredText extends DocHandler
                             'summary' => isset($docs[$name]) ? $docs[$name]['description'] : '',
                         ];
                     }
-                    $str_table = Rst::table($datas, $headers);
-                    $str .= Rst::field('参数', $str_table, false);
+                    $str_table = MD::table($datas, $headers);
+                    $str .= MD::field('参数', "\r\n" . $str_table, false);
                 }
 
                 if ($doc) {
@@ -405,13 +407,13 @@ class ReStructuredText extends DocHandler
                         $return = $returns[0];
                         $return_desc = $return->getDescription();
                         if ($return_desc && (string)$return_desc) {
-                            $str .= Rst::field('返回值', $return_desc);
+                            $str .= MD::field('返回值', $return_desc);
                         }
                     }
                 }
 
                 if ($desc) {
-                    $str .= Rst::block($desc);
+                    $str .= MD::block($desc);
                 }
 
                 //@todo 说明及用例
@@ -424,7 +426,7 @@ class ReStructuredText extends DocHandler
 
     /**
      * 解析
-     * @return string 返回RST格式文档字符串
+     * @return string 返回MD格式文档字符串
      */
     public function parse(): string
     {
@@ -452,11 +454,11 @@ class ReStructuredText extends DocHandler
     {
         $pathinfo = pathinfo($file);
         self::registerAutoload($pathinfo['dirname'], $namespace);
-        $rst = new static($namespace . '\\' . $pathinfo['filename'], $filters);
-        if ($check && !$rst->checkClassFilters()) {
+        $mk = new static($namespace . '\\' . $pathinfo['filename'], $filters);
+        if ($check && !$mk->checkClassFilters()) {
             return false;
         }
-        $content = $rst->parse();
+        $content = $mk->parse();
         $fso = new File($output, 'w+');
         $fso->putContents($content);
         return true;
@@ -473,17 +475,60 @@ class ReStructuredText extends DocHandler
      */
     public static function dir(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null)
     {
+        $idx_content = self::dirParse($dir, $output, $namespace, $in, $map, $filters);
         if ($in) {
-            $output = $output . '/' . $in;
+            $title = $in;
+            if (isset($map[0])) {
+                $title = $map[0];
+            }
+            $idx_content = "* [$title]($in/README.md)\n" . $idx_content;
+            if (File::exists($output . "/$in/README.md")) {
+                $fso = new File($output . "/$in/README.md", 'r');
+                $fso->copy($output . "/$in", "README.md." . date("YmdHis") . ".bak");
+            }
+            $fso = new File($output . "/$in/README.md", 'w+');
+            $fso->putContents("# $title\n");
         }
+        if (File::exists($output . "/README.md")) {
+            $fso = new File($output . "/README.md", 'r');
+            $fso->copy($output, "README.md." . date("YmdHis") . ".bak");
+        }
+        $fso = new File($output . '/README.md', 'w+');
+        $fso->putContents("# namespace：$namespace");
 
+        if (File::exists($output . "/SUMMARY.md")) {
+            $fso = new File($output . "/SUMMARY.md", 'r');
+            $fso->copy($output, "SUMMARY.md." . date("YmdHis") . ".bak");
+        }
+        $fso = new File($output . '/SUMMARY.md', 'w+');
+        $idx_content = str_replace(MD::original("$namespace\\"), "", $idx_content);  //缩短命名空间
+        $fso->putContents($idx_content);
+    }
+
+    /**
+     * 解析代码文件夹
+     * @param string      $dir       文件夹路径
+     * @param string      $output    保存文档的根目录
+     * @param string      $namespace 命名空间
+     * @param string|null $in        存放导出文档的目录
+     * @param array       $map       文件夹命名规范
+     * @param array|bool  $filters   过滤器
+     * @return string 返回md用于生成目录的内容
+     */
+    private static function dirParse(string $dir, string $output, string $namespace = '', string $in = null, array $map = [], $filters = null): string
+    {
         self::registerAutoload($dir, $namespace);
+
+        $org_output = $output;
+        if ($in) {
+            $output .= "/$in";
+        }
 
         if (!Directory::exists($output)) {
             new Directory($output, true);
         }
 
-        $idxcontent = '';
+        $idx_content = '';
 
         $items = (new Directory($dir))->scan();
         foreach ($items as $item) {
@@ -493,39 +538,58 @@ class ReStructuredText extends DocHandler
                     continue;
                 }
 
-                if ($idxcontent) {
-                    $idxcontent .= "\n";
-                }
-                $idxcontent .= $item . "/index";
-
                 $sub_map = [];
                 if (isset($map[1]) && isset($map[1][$item])) {
                     $sub_map = $map[1][$item];
                 }
 
-                self::dir($path, $output . '/' . $item, $namespace . '\\' . $item, null, $sub_map, $filters);
+                $idx_content .= self::dirParse($path, $org_output, $namespace . '\\' . $item, $in, $sub_map, $filters);
             } else {
                 $pathinfo = pathinfo($path);
-                $save_file = $output . '/' . self::uncamelize($pathinfo['filename']) . '.rst';
-                $result = self::file($path, $save_file, $namespace, $filters, true);
+
+                $save_file = self::toMdFilename($namespace . '\\' . $pathinfo['filename']) . '.md';
+
+                $result = self::file($path, $output . '/' . $save_file, $namespace, $filters, true);
                 if ($result) {
-                    if ($idxcontent) {
-                        $idxcontent .= "\n";
+                    if ($in) {
+                        $idx_content .= "   * [" . MD::original($namespace . '\\' . $pathinfo['filename']) . "]($in/$save_file)\n";
+                    } else {
+                        $idx_content .= "* [" . MD::original($namespace . '\\' . $pathinfo['filename']) . "]($save_file)\n";
                     }
-                    $idxcontent .= self::uncamelize($pathinfo['filename']);
                 }
             }
         }
-        //创建index.rst
-        $idxstr = '';
-        $title = basename($dir);
-        if (isset($map[0])) {
-            $title = $map[0];
-        }
-        $idxstr .= Rst::title($title, 1);
-        $idxstr .= "\r\n\r\n";
-        $idxstr .= Rst::directive('toctree', '', ['maxdepth' => 2, 'glob' => null], $idxcontent);
-        $fso = new File($output . '/index.rst', 'w+');
-        $fso->putContents($idxstr);
+
+        return $idx_content;
+    }
+
+    /**
+     * 将类名转化为md文件名
+     * @param string $class 类名
+     * @return string
+     */
+    private static function toMdFilename(string $class): string
+    {
+        $name = self::uncamelize($class);
+        $name = str_replace('\\', '_', $name);
+        return $name;
+    }
+
+    /**
+     * 返回md定义的锚点名称
+     *
+     * md锚点转化需要满足一定格式
+     * @param string $str 原字符串
+     * @return string
+     */
+    private static function toMdAnchor(string $str): string
+    {
+        $str = strtolower($str);
+        $str = str_replace(' ', '-', $str);
+        $str = str_replace('_', '', $str);
+        $str = str_replace('(', '', $str);
+        $str = str_replace(')', '', $str);
+        // %28%29 为字符串“()”的实体
+        return $str;
     }
 }

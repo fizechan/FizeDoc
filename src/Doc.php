@@ -1,6 +1,6 @@
 <?php
 
-namespace fize\doc;
+namespace Fize\Doc;
 
 use RuntimeException;
 

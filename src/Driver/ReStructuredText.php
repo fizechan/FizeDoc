@@ -1,6 +1,6 @@
 <?php
 
-namespace fize\doc\driver;
+namespace Fize\Doc\Driver;
 
 /**
  * ReStructuredText 驱动

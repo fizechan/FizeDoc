@@ -1,7 +1,8 @@
 <?php
 
+namespace Tests;
 
-use fize\doc\Doc;
+use Fize\Doc\Doc;
 use PHPUnit\Framework\TestCase;
 
 class TestDoc extends TestCase

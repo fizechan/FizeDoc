@@ -1,16 +1,17 @@
 <?php
 
-namespace handler;
+namespace Tests\Handler;
 
-use fize\doc\handler\ReStructuredText;
+use Fize\Doc\Handler\Markdown;
 use PHPUnit\Framework\TestCase;
 
-class TestReStructuredText extends TestCase
+class TestMarkdown extends TestCase
 {
+
     public function testParse()
     {
-        $class = "fize\\doc\\handler\\ReStructuredText";
-        $mk = new ReStructuredText($class);
+        $class = "fize\\doc\\handler\\Markdown";
+        $mk = new Markdown($class);
         $str = $mk->parse();
         self::assertIsString($str);
         echo $str;
@@ -18,10 +19,10 @@ class TestReStructuredText extends TestCase
 
     public function testFile()
     {
-        $file = 'F:\git\github\Fize\FizeDoc\src\handler\ReStructuredText.php';
-        $output = dirname(__DIR__) . '/../temp/ReStructuredText.rst';
+        $file = 'F:\git\github\Fize\FizeDoc\src\handler\Markdown.php';
+        $output = dirname(__DIR__) . '/../temp/Markdown.md';
         $namespace = 'fize\doc\handler';
-        ReStructuredText::file($file, $output, $namespace);
+        Markdown::file($file, $output, $namespace);
         self::assertTrue(true);
     }
 
@@ -34,9 +35,9 @@ class TestReStructuredText extends TestCase
             ]
         ];
         $dir = 'F:\git\github\Fize\FizeDoc\src';
-        $output = dirname(__DIR__) . '/../temp/rst';
+        $output = dirname(__DIR__) . '/../temp/mk';
 
-        ReStructuredText::dir($dir, $output, 'fize\doc', 'libraries', $map);
+        Markdown::dir($dir, $output, 'fize\doc', 'libraries', $map);
         self::assertTrue(true);
     }
 }
