@@ -17,7 +17,7 @@
   "require": {
     "php": ">=7.1.0",
     "ext-json": "*",
-    "fize/io": "^6.0.0",
+    "fize/io": "^7.0.0",
     "phpdocumentor/reflection-docblock": "^5.2.2"
   },
   "autoload-dev": {
